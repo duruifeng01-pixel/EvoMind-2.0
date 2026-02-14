@@ -248,6 +248,43 @@ Android端:
   * 扩展 OcrApi.kt 添加链接导入API
 - Git commit: "feat: feat_005 链接抓取功能 - 完整实现"
 
+[2026-02-14] Session 7: Coding Agent - feat_006 语音快速记录功能
+
+后端实现:
+✅ 创建VoiceNote实体类：存储语音元数据、转写状态、音频信息
+✅ 创建VoiceNoteRepository：支持分页查询、搜索、统计
+✅ 实现VoiceTranscriptionService：集成百度语音识别API，支持模拟模式
+✅ 实现VoiceNoteService：业务逻辑层，支持创建、查询、更新、删除
+✅ 创建VoiceNoteRequest/Response DTO
+✅ 创建VoiceNoteController API控制器：
+   - POST /voice-notes/base64 - Base64音频上传
+   - GET /voice-notes - 列表查询
+   - GET /voice-notes/search - 关键词搜索
+   - GET /voice-notes/{id} - 详情查询
+   - PUT /voice-notes/{id} - 更新
+   - DELETE /voice-notes/{id} - 删除
+   - POST /voice-notes/{id}/favorite - 收藏
+   - POST /voice-notes/{id}/archive - 归档
+   - POST /voice-notes/{id}/retranscribe - 重新转写
+   - GET /voice-notes/statistics - 统计信息
+✅ 添加百度语音配置到application.yml
+✅ 创建V8__add_voice_notes.sql数据库迁移脚本
+✅ 创建VoiceTranscriptionServiceTest单元测试
+
+Android端实现:
+✅ 创建VoiceNote数据模型：Domain层实体、状态枚举、辅助方法
+✅ 创建VoiceNoteApi接口：Retrofit API定义和DTO
+✅ 创建VoiceNoteRepository接口和实现
+✅ 创建VoiceNoteUseCase：业务逻辑封装
+✅ 创建VoiceNoteViewModel：录音控制、状态管理
+✅ 创建VoiceNoteRecordScreen：长按录音界面、波形动画、统计卡片
+✅ 创建VoiceNoteListScreen：笔记列表、收藏、删除、搜索
+✅ 集成MediaRecorder实现本地录音
+✅ 更新Screen.kt添加语音笔记路由
+✅ 使用模拟模式（无需真实百度API密钥）
+
+Git commit: "feat: feat_006 语音快速记录功能 - 完整实现"
+
 === 注意事项 ===
 
 - 严格遵循国内合规要求

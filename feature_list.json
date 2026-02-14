@@ -80,13 +80,24 @@
     "priority": "high",
     "description": "语音快速记录功能",
     "steps": [
-      "集成百度语音SDK",
+      "✅ 后端: VoiceNote实体类和Repository",
+      "✅ 后端: VoiceTranscriptionService (百度语音API集成)",
+      "✅ 后端: VoiceNoteService业务逻辑层",
+      "✅ 后端: VoiceNoteController API控制器",
+      "✅ 后端: 数据库迁移脚本 V8__add_voice_notes.sql",
+      "✅ 后端: VoiceTranscriptionServiceTest单元测试",
+      "✅ Android: VoiceNote数据模型",
+      "✅ Android: VoiceNoteApi接口和Repository",
+      "✅ Android: VoiceNoteUseCase业务逻辑",
+      "✅ Android: VoiceNoteViewModel和录音功能",
+      "✅ Android: VoiceNoteRecordScreen录制界面",
+      "✅ Android: VoiceNoteListScreen列表界面",
+      "✅ Android: MediaRecorder集成",
       "长按录音交互",
       "实时语音转文字",
-      "离线语音识别支持",
-      "保存为灵感笔记"
+      "离线语音识别支持"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_007",

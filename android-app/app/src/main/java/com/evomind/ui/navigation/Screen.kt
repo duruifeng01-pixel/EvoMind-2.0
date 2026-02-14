@@ -23,6 +23,7 @@ sealed class Screen(val route: String) {
     }
     object LinkImport : Screen("link_import")
     object VoiceRecord : Screen("voice_record")
+    object VoiceNoteList : Screen("voice_note_list")
     object CognitiveCard : Screen("cognitive_card/{cardId}") {
         fun createRoute(cardId: String) = "cognitive_card/$cardId"
     }
