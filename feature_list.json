@@ -1,0 +1,492 @@
+[
+  {
+    "id": "feat_001",
+    "category": "functional",
+    "priority": "high",
+    "description": "Android项目初始化 - Kotlin + Jetpack Compose + MVVM架构",
+    "steps": [
+      "创建Android项目结构",
+      "配置Kotlin和Compose依赖",
+      "设置MVVM架构模块",
+      "配置Room数据库",
+      "设置Hilt依赖注入"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_002",
+    "category": "functional",
+    "priority": "high",
+    "description": "Spring Boot后端初始化",
+    "steps": [
+      "创建Spring Boot项目",
+      "配置MySQL数据库连接",
+      "设置Redis缓存",
+      "配置JWT认证",
+      "设置Swagger API文档"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_003",
+    "category": "functional",
+    "priority": "high",
+    "description": "用户注册与登录系统",
+    "steps": [
+      "手机号注册功能",
+      "短信验证码发送",
+      "手机号+验证码登录",
+      "微信授权登录",
+      "JWT Token管理"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_004",
+    "category": "functional",
+    "priority": "high",
+    "description": "截图OCR识别功能 - 百度OCR SDK集成",
+    "steps": [
+      "集成百度OCR SDK",
+      "图片裁剪与预处理",
+      "识别博主名称和头像",
+      "生成可选择的博主列表",
+      "一键添加信息源"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_005",
+    "category": "functional",
+    "priority": "high",
+    "description": "链接抓取功能 - 小红书/微信/知乎/抖音",
+    "steps": [
+      "链接解析与验证",
+      "网页内容抓取",
+      "正文内容提取",
+      "图片资源下载",
+      "反爬策略处理"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_006",
+    "category": "functional",
+    "priority": "high",
+    "description": "语音快速记录功能",
+    "steps": [
+      "集成百度语音SDK",
+      "长按录音交互",
+      "实时语音转文字",
+      "离线语音识别支持",
+      "保存为灵感笔记"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_007",
+    "category": "functional",
+    "priority": "high",
+    "description": "AI认知卡片生成 - 文心一言API",
+    "steps": [
+      "集成文心一言API",
+      "Prompt工程优化",
+      "核心观点提取",
+      "金句识别",
+      "案例提取与结构化"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_008",
+    "category": "functional",
+    "priority": "high",
+    "description": "观点冲突标记系统",
+    "steps": [
+      "文本相似度计算",
+      "主题聚类分析",
+      "观点立场识别",
+      "冲突检测算法",
+      "对比视图展示"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_009",
+    "category": "functional",
+    "priority": "high",
+    "description": "7:3智能混合信息流",
+    "steps": [
+      "用户画像构建",
+      "内容推荐算法",
+      "70%自选源内容",
+      "30%系统推荐内容",
+      "信息茧房避免策略"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_010",
+    "category": "functional",
+    "priority": "high",
+    "description": "AI苏格拉底式对话",
+    "steps": [
+      "对话系统架构",
+      "苏格拉底式Prompt",
+      "追问逻辑设计",
+      "对话历史管理",
+      "深度思考引导"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_011",
+    "category": "functional",
+    "priority": "high",
+    "description": "本地语料库管理 - SQLite加密存储",
+    "steps": [
+      "SQLite数据库加密",
+      "认知卡片存储",
+      "全文检索功能",
+      "标签管理系统",
+      "数据导出功能"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_012",
+    "category": "functional",
+    "priority": "high",
+    "description": "知识脑图自动生成",
+    "steps": [
+      "知识图谱构建",
+      "主题聚类算法",
+      "节点关系分析",
+      "脑图可视化",
+      "手动编辑功能"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_013",
+    "category": "functional",
+    "priority": "high",
+    "description": "一键训练私有Agent - 本地ONNX Runtime",
+    "steps": [
+      "ONNX Runtime集成",
+      "模型量化优化",
+      "本地训练流程",
+      "训练进度展示",
+      "模型版本管理"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_014",
+    "category": "functional",
+    "priority": "high",
+    "description": "Agent对话系统 - RAG检索增强",
+    "steps": [
+      "本地向量数据库",
+      "RAG检索逻辑",
+      "Agent对话界面",
+      "上下文管理",
+      "离线推理支持"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_015",
+    "category": "functional",
+    "priority": "medium",
+    "description": "变步频挑战任务系统",
+    "steps": [
+      "任务难度分级",
+      "入门阶段任务",
+      "进阶阶段任务",
+      "精通阶段任务",
+      "动态难度调整"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_016",
+    "category": "functional",
+    "priority": "medium",
+    "description": "作品化存证系统",
+    "steps": [
+      "作品上传功能",
+      "能力徽章系统",
+      "成长轨迹记录",
+      "作品版本管理",
+      "作品分享功能"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_017",
+    "category": "functional",
+    "priority": "medium",
+    "description": "小组学习功能",
+    "steps": [
+      "创建学习小组",
+      "加入小组",
+      "小组讨论",
+      "精华内容提取",
+      "打卡监督"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_018",
+    "category": "functional",
+    "priority": "medium",
+    "description": "成长数据可视化",
+    "steps": [
+      "学习时长统计",
+      "认知卡片数量",
+      "脑图规模展示",
+      "Agent进化度",
+      "图表动画效果"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_019",
+    "category": "functional",
+    "priority": "medium",
+    "description": "能力报告生成",
+    "steps": [
+      "周/月报告生成",
+      "知识图谱展示",
+      "成长曲线",
+      "阶段建议",
+      "PDF导出功能"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_020",
+    "category": "functional",
+    "priority": "medium",
+    "description": "社交分享图生成",
+    "steps": [
+      "分享图模板设计",
+      "Canvas绘制",
+      "多平台尺寸适配",
+      "一键保存相册",
+      "直接分享功能"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_021",
+    "category": "functional",
+    "priority": "high",
+    "description": "透明算力成本系统",
+    "steps": [
+      "成本指标定义",
+      "实时成本计算",
+      "成本展示页面",
+      "10分钟更新频率",
+      "成本透明说明"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_022",
+    "category": "functional",
+    "priority": "high",
+    "description": "订阅套餐系统",
+    "steps": [
+      "基础版套餐",
+      "进阶版套餐",
+      "自由版套餐",
+      "功能维度自选",
+      "套餐升级降级"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_023",
+    "category": "functional",
+    "priority": "high",
+    "description": "微信支付集成",
+    "steps": [
+      "微信支付SDK",
+      "订单创建",
+      "支付回调处理",
+      "订单查询",
+      "退款功能"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_024",
+    "category": "functional",
+    "priority": "high",
+    "description": "支付宝支付集成",
+    "steps": [
+      "支付宝SDK集成",
+      "订单创建",
+      "支付回调处理",
+      "订单查询",
+      "退款功能"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_025",
+    "category": "functional",
+    "priority": "medium",
+    "description": "免费体验机制",
+    "steps": [
+      "每日免费额度",
+      "3天进阶体验",
+      "额度重置逻辑",
+      "订阅引导",
+      "体验限制提示"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_026",
+    "category": "style",
+    "priority": "medium",
+    "description": "UI主题设计 - 冷色调极简主义",
+    "steps": [
+      "深空灰主色调",
+      "科技蓝强调色",
+      "银白色背景",
+      "高对比度文字",
+      "Notion风格设计"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_027",
+    "category": "style",
+    "priority": "medium",
+    "description": "手势交互设计",
+    "steps": [
+      "左右滑动切换",
+      "上下滑动浏览",
+      "双指缩放脑图",
+      "长按触发功能",
+      "单功能≤3步"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_028",
+    "category": "style",
+    "priority": "medium",
+    "description": "轻量动效设计",
+    "steps": [
+      "页面切换动画",
+      "卡片滑动效果",
+      "脑图展开动画",
+      "动效时长≤0.5秒",
+      "可关闭动效选项"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_029",
+    "category": "functional",
+    "priority": "high",
+    "description": "离线优先架构",
+    "steps": [
+      "本地数据缓存",
+      "离线功能支持",
+      "联网自动同步",
+      "冲突解决策略",
+      "弱网优化"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_030",
+    "category": "functional",
+    "priority": "medium",
+    "description": "性能优化",
+    "steps": [
+      "App启动≤3秒",
+      "页面无卡顿",
+      "AI生成≤5秒",
+      "OCR识别≤3秒",
+      "内存≤500MB"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_031",
+    "category": "functional",
+    "priority": "medium",
+    "description": "用户个人中心",
+    "steps": [
+      "用户信息展示",
+      "学习数据概览",
+      "功能入口管理",
+      "资产中心",
+      "设置页面"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_032",
+    "category": "functional",
+    "priority": "medium",
+    "description": "新手引导系统",
+    "steps": [
+      "首次启动引导",
+      "功能介绍",
+      "操作提示",
+      "引导进度保存",
+      "跳过引导选项"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_033",
+    "category": "functional",
+    "priority": "low",
+    "description": "数据备份与恢复",
+    "steps": [
+      "本地数据备份",
+      "云端备份选项",
+      "数据恢复功能",
+      "导出PDF/Excel",
+      "批量导出"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_034",
+    "category": "functional",
+    "priority": "low",
+    "description": "推送通知系统",
+    "steps": [
+      "每日内容推送",
+      "任务提醒",
+      "订阅到期提醒",
+      "小组动态通知",
+      "通知设置管理"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_035",
+    "category": "functional",
+    "priority": "low",
+    "description": "深色模式支持",
+    "steps": [
+      "深色主题设计",
+      "自动切换",
+      "手动切换",
+      "跟随系统",
+      "对比度优化"
+    ],
+    "passes": false
+  }
+]
