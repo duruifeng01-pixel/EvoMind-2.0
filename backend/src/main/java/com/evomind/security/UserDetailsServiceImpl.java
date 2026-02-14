@@ -22,10 +22,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByPhone(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with phone: " + username));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getPhone(),
-                user.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-        );
+        return UserDetailsImpl.build(user);
     }
 }

@@ -23,11 +23,20 @@ public class Card extends BaseEntity {
     @Column(name = "summary_text", length = 2000)
     private String summaryText;
 
+    @Column(name = "one_sentence_summary", length = 200)
+    private String oneSentenceSummary;
+
     @Column(name = "source_id")
     private Long sourceId;
 
     @Column(name = "source_url", length = 512)
     private String sourceUrl;
+
+    @Column(name = "source_title", length = 200)
+    private String sourceTitle;
+
+    @Column(name = "original_content_id")
+    private Long originalContentId;
 
     @Column(name = "mindmap_json", columnDefinition = "json")
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
@@ -38,6 +47,12 @@ public class Card extends BaseEntity {
 
     @Column(name = "is_archived")
     private Boolean isArchived = false;
+
+    @Column(name = "has_conflict")
+    private Boolean hasConflict = false;
+
+    @Column(name = "conflict_card_ids")
+    private String conflictCardIds;
 
     @Column(name = "view_count")
     private Integer viewCount = 0;
@@ -50,4 +65,13 @@ public class Card extends BaseEntity {
 
     @Column(name = "token_used")
     private Integer tokenUsed = 0;
+
+    @Column(name = "generate_status", length = 20)
+    private String generateStatus = "PENDING";
+
+    @Column(name = "keywords")
+    private String keywords;
+
+    @Column(name = "reading_time_minutes")
+    private Integer readingTimeMinutes;
 }
