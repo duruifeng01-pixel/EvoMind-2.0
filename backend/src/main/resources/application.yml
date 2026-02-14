@@ -88,10 +88,10 @@ baidu:
     api-key: ${BAIDU_OCR_API_KEY:}
     secret-key: ${BAIDU_OCR_SECRET_KEY:}
   speech:
-    enabled: false  # 是否启用真实语音识别（false使用模拟模式）
+    enabled: true  # 启用真实语音识别
     app-id: ${BAIDU_SPEECH_APP_ID:}
-    api-key: ${BAIDU_SPEECH_API_KEY:}
-    secret-key: ${BAIDU_SPEECH_SECRET_KEY:}
+    api-key: EBR6aUv1f1Xfc5HQlDlyx2Q1
+    secret-key: 4PxlIxCs38KD0tcK8UXU9grGJqxUYWGC
 
 # DeepSeek AI配置
 deepseek:
