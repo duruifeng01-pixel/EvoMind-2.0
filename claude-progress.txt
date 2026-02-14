@@ -132,6 +132,56 @@ feat_003: 用户注册与登录系统 - 手机号注册、短信验证码、微�
    - feat_009 (7:3智能混合信息流): Feed流API架构完成
    - feat_012 (知识脑图自动生成): 脑图数据模型完成
 
+[2026-02-14] Session 6: Coding Agent - feat_004 截图OCR识别功能
+
+后端实现:
+✅ 创建OcrImportRequest/OcrResultResponse/ConfirmImportRequest DTO
+✅ 创建OcrImportLog实体和OcrImportLogRepository数据访问层
+✅ 实现OcrService接口和OcrServiceImpl（集成百度OCR API）
+   - 高精度文字识别（accurate API）
+   - 支持小红书/微信/抖音等多平台博主识别
+   - 图片去重（MD5哈希）
+   - 模拟模式支持（无需真实API密钥）
+✅ 扩展SourceImportService，集成OCR识别流程
+✅ 创建SourceController，提供OCR相关API端点：
+   - POST /sources/ocr-import - 提交OCR识别
+   - POST /sources/confirm-import - 确认导入博主
+   - GET /sources/ocr-result/{taskId} - 查询识别结果
+   - GET /sources/import-limit - 查询导入限额
+✅ 添加百度OCR配置到application.yml
+✅ 创建数据库迁移脚本V6__add_ocr_import_logs.sql
+
+Android端实现:
+✅ 创建OcrResult数据模型（Domain层）
+✅ 创建OcrApi接口（Retrofit）
+✅ 实现OcrRepository和OcrRepositoryImpl
+✅ 创建OcrUseCase处理业务逻辑
+✅ 创建OcrImportScreen截图导入页面
+   - 支持相册选择和相机拍照
+   - 平台选择器（小红书/微信/抖音等）
+   - 图片预览和压缩
+✅ 创建OcrResultScreen识别结果页面
+   - 博主列表展示（含平台标签）
+   - 批量选择和全选功能
+   - 已存在标记
+   - 一键导入按钮
+✅ 创建OcrImportViewModel和OcrResultViewModel
+✅ 更新导航配置，添加OCR路由
+
+测试与文档:
+✅ 创建OcrServiceTest单元测试（Mockito）
+✅ 更新feature_list.json - feat_004标记为完成
+✅ 更新claude-progress.txt开发日志
+
+技术要点:
+- 采用MVVM + Clean Architecture架构
+- 支持图片压缩（最大1MB）
+- 识别结果置信度显示
+- 每日导入限额控制（20次/日）
+- 已存在博主自动标记
+
+下一步: feat_005 链接抓取功能
+
 === 后续功能队列（按优先级）===
 1. feat_004: 截图OCR识别功能
 2. feat_004: 截图OCR识别功能

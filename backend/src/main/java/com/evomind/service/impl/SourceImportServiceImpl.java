@@ -3,13 +3,17 @@ package com.evomind.service.impl;
 import com.evomind.dto.request.ConfirmImportRequest;
 import com.evomind.dto.request.LinkImportRequest;
 import com.evomind.dto.request.OcrImportRequest;
+import com.evomind.dto.response.OcrResultResponse;
 import com.evomind.dto.response.SourceImportJobResponse;
+import com.evomind.entity.OcrImportLog;
 import com.evomind.entity.Source;
 import com.evomind.entity.SourceImportJob;
 import com.evomind.exception.BusinessException;
 import com.evomind.exception.ResourceNotFoundException;
+import com.evomind.repository.OcrImportLogRepository;
 import com.evomind.repository.SourceImportJobRepository;
 import com.evomind.repository.SourceRepository;
+import com.evomind.service.OcrService;
 import com.evomind.service.SourceImportService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,9 +29,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 信息源导入服务实现
+ * 支持OCR截图识别和链接抓取两种方式导入信息源
  */
 @Slf4j
 @Service
@@ -35,7 +41,9 @@ import java.util.Optional;
 public class SourceImportServiceImpl implements SourceImportService {
 
     private final SourceImportJobRepository jobRepository;
+    private final OcrImportLogRepository ocrImportLogRepository;
     private final SourceRepository sourceRepository;
+    private final OcrService ocrService;
     private final ObjectMapper objectMapper;
 
     // 每日导入限制（免费用户）
@@ -54,19 +62,23 @@ public class SourceImportServiceImpl implements SourceImportService {
         job.setUserId(userId);
         job.setImportType(SourceImportJob.ImportType.OCR_SCREENSHOT);
         job.setStatus(SourceImportJob.JobStatus.PENDING);
-        job.setImageUrl("data:image/" + ocrRequest.getImageFormat() + ";base64," + ocrRequest.getImageBase64().substring(0, Math.min(100, ocrRequest.getImageBase64().length())) + "...");
+        job.setPlatform(ocrRequest.getPlatform());
+        job.setImageUrl("data:image/" + ocrRequest.getImageFormat() + ";base64," + 
+            ocrRequest.getImageBase64().substring(0, Math.min(50, ocrRequest.getImageBase64().length())) + "...");
         job.setCreatedAt(LocalDateTime.now());
         job.setUpdatedAt(LocalDateTime.now());
 
         // 保存任务
         SourceImportJob savedJob = jobRepository.save(job);
 
-        // TODO: 异步调用OCR服务识别图片中的博主信息
-        // 这里先返回任务，实际识别逻辑将在后续集成百度OCR SDK后实现
-        log.info("用户 {} 提交OCR导入任务 {}，待实现OCR识别逻辑", userId, savedJob.getId());
-
-        // 模拟处理完成（实际应该异步处理）
-        simulateOcrProcessing(savedJob);
+        // 立即执行OCR识别（同步处理，实际可改为异步）
+        try {
+            executeOcrRecognition(savedJob, ocrRequest);
+        } catch (Exception e) {
+            log.error("OCR识别失败", e);
+            savedJob.fail(e.getMessage());
+            jobRepository.save(savedJob);
+        }
 
         return SourceImportJobResponse.fromEntity(savedJob);
     }
@@ -97,14 +109,45 @@ public class SourceImportServiceImpl implements SourceImportService {
 
         SourceImportJob savedJob = jobRepository.save(job);
 
-        // TODO: 异步调用链接抓取服务
-        // 这里先返回任务，实际抓取逻辑将在后续实现
+        // TODO: 异步调用链接抓取服务（feat_005实现）
         log.info("用户 {} 提交链接抓取任务 {}，待实现抓取逻辑", userId, savedJob.getId());
 
         // 模拟处理完成（实际应该异步处理）
         simulateLinkProcessing(savedJob);
 
         return SourceImportJobResponse.fromEntity(savedJob);
+    }
+
+    /**
+     * 执行OCR识别
+     */
+    private void executeOcrRecognition(SourceImportJob job, OcrImportRequest request) throws Exception {
+        job.startProcessing();
+        jobRepository.save(job);
+
+        // 调用OCR服务识别
+        OcrResultResponse ocrResult = ocrService.recognizeBloggers(job.getUserId(), request);
+
+        // 转换结果格式
+        List<SourceImportJobResponse.DetectedAuthor> authors = ocrResult.getBloggers().stream()
+            .map(blogger -> {
+                SourceImportJobResponse.DetectedAuthor author = new SourceImportJobResponse.DetectedAuthor();
+                author.setName(blogger.getName());
+                author.setAvatarUrl(blogger.getAvatarUrl());
+                author.setConfidence(blogger.getConfidence());
+                author.setHomeUrl(blogger.getHomeUrl());
+                author.setPlatform(blogger.getPlatform());
+                return author;
+            })
+            .collect(Collectors.toList());
+
+        // 保存识别结果
+        job.setDetectedAuthorsJson(objectMapper.writeValueAsString(authors));
+        job.setPlatform(request.getPlatform());
+        job.complete();
+        jobRepository.save(job);
+
+        log.info("OCR识别完成: jobId={}, 识别到{}个博主", job.getId(), authors.size());
     }
 
     @Override
@@ -139,53 +182,68 @@ public class SourceImportServiceImpl implements SourceImportService {
     }
 
     @Override
+    @SneakyThrows
     @Transactional
     public List<ImportResult> confirmImport(Long userId, ConfirmImportRequest confirmRequest) {
-        SourceImportJob job = jobRepository.findByIdAndUserId(confirmRequest.getJobId(), userId)
-                .orElseThrow(() -> new ResourceNotFoundException("导入任务不存在"));
+        // 从OCR任务中获取结果
+        OcrImportLog ocrLog = ocrImportLogRepository.findByTaskId(confirmRequest.getTaskId())
+            .orElseThrow(() -> new ResourceNotFoundException("OCR任务不存在"));
 
-        if (job.getStatus() != SourceImportJob.JobStatus.COMPLETED) {
-            throw new BusinessException("任务尚未完成，无法确认导入");
+        if (ocrLog.getStatus() != OcrImportLog.OcrStatus.SUCCESS) {
+            throw new BusinessException("OCR任务未完成或失败");
         }
 
-        List<ImportResult> results = new ArrayList<>();
+        // 解析OCR结果
+        OcrResultResponse ocrResult = objectMapper.readValue(ocrLog.getRawResult(), OcrResultResponse.class);
 
-        for (ConfirmImportRequest.SelectedAuthor author : confirmRequest.getSelectedAuthors()) {
-            // 检查是否已存在相同名称的信息源
-            Optional<Source> existingSource = sourceRepository.findByUserIdAndName(userId, author.getName());
+        List<ImportResult> results = new ArrayList<>();
+        int importedCount = 0;
+
+        // 导入选中的博主
+        for (OcrResultResponse.DetectedBlogger blogger : ocrResult.getBloggers()) {
+            if (!confirmRequest.getSelectedCandidateIds().contains(blogger.getCandidateId())) {
+                continue;
+            }
+
+            // 检查是否已存在
+            Optional<Source> existingSource = sourceRepository.findByUserIdAndHomeUrl(
+                userId, blogger.getHomeUrl());
 
             ImportResult result = new ImportResult();
-            result.setName(author.getName());
-            result.setPlatform(author.getPlatform());
+            result.setName(blogger.getName());
+            result.setPlatform(blogger.getPlatform());
 
             if (existingSource.isPresent()) {
-                // 已存在，不重复添加
                 result.setSourceId(existingSource.get().getId());
                 result.setExisted(true);
-                log.info("用户 {} 的信息源 '{}' 已存在，跳过添加", userId, author.getName());
             } else {
                 // 创建新信息源
                 Source source = new Source();
                 source.setUserId(userId);
-                source.setName(author.getName());
-                source.setPlatform(author.getPlatform());
-                source.setHomeUrl(author.getHomeUrl());
-                source.setCategory(author.getCategory());
+                source.setName(blogger.getName());
+                source.setPlatform(blogger.getPlatform());
+                source.setHomeUrl(blogger.getHomeUrl());
+                source.setCategory("imported");
+                source.setSyncStatus("pending");
                 source.setEnabled(true);
-                source.setArticleCount(0);
 
                 Source saved = sourceRepository.save(source);
                 result.setSourceId(saved.getId());
                 result.setExisted(false);
-                log.info("用户 {} 成功添加信息源 '{}'，ID: {}", userId, author.getName(), saved.getId());
+                importedCount++;
             }
 
             results.add(result);
         }
 
-        // 更新任务状态为已确认
-        job.setSelectedAuthorsJson(toJson(confirmRequest.getSelectedAuthors()));
-        jobRepository.save(job);
+        // 更新OCR日志状态
+        ocrLog.setStatus(OcrImportLog.OcrStatus.CONFIRMED);
+        ocrLog.setImportedCount(importedCount);
+        ocrLog.setConfirmedAt(LocalDateTime.now());
+        ocrImportLogRepository.save(ocrLog);
+
+        log.info("用户 {} 确认导入: taskId={}, 选中{}个, 成功导入{}个",
+            userId, confirmRequest.getTaskId(), confirmRequest.getSelectedCandidateIds().size(), importedCount);
 
         return results;
     }
@@ -196,17 +254,15 @@ public class SourceImportServiceImpl implements SourceImportService {
         SourceImportJob job = jobRepository.findByIdAndUserId(jobId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("导入任务不存在"));
 
-        // 只能取消待处理或处理中的任务
-        if (job.getStatus() == SourceImportJob.JobStatus.PENDING ||
-                job.getStatus() == SourceImportJob.JobStatus.PROCESSING) {
-            job.setStatus(SourceImportJob.JobStatus.FAILED);
-            job.setErrorMessage("用户取消任务");
-            job.setCompletedAt(LocalDateTime.now());
-            jobRepository.save(job);
-            log.info("用户 {} 取消导入任务 {}", userId, jobId);
-        } else {
-            throw new BusinessException("任务状态不允许取消");
+        if (job.getStatus() == SourceImportJob.JobStatus.COMPLETED ||
+            job.getStatus() == SourceImportJob.JobStatus.FAILED) {
+            throw new BusinessException("已完成的任务无法取消");
         }
+
+        job.setStatus(SourceImportJob.JobStatus.FAILED);
+        job.setErrorMessage("用户取消");
+        job.setCompletedAt(LocalDateTime.now());
+        jobRepository.save(job);
     }
 
     @Override
@@ -221,103 +277,45 @@ public class SourceImportServiceImpl implements SourceImportService {
 
         job.retry();
         job.setErrorMessage(null);
+        job.setUpdatedAt(LocalDateTime.now());
         jobRepository.save(job);
 
-        // 根据类型重新触发处理
-        if (job.getImportType() == SourceImportJob.ImportType.OCR_SCREENSHOT) {
-            simulateOcrProcessing(job);
-        } else {
-            simulateLinkProcessing(job);
-        }
+        // 实际应该触发异步重新处理
+        log.info("任务重试: jobId={}", jobId);
 
         return SourceImportJobResponse.fromEntity(job);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public boolean isDailyLimitExceeded(Long userId, int maxLimit) {
-        Long todayCount = jobRepository.countTodayImportsByUserId(userId);
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        long todayCount = jobRepository.countByUserIdAndCreatedAtAfter(userId, startOfDay);
         return todayCount >= maxLimit;
     }
 
     /**
-     * 检测链接所属平台
+     * 检测链接平台类型
      */
     private String detectPlatform(String url) {
-        String lowerUrl = url.toLowerCase();
-        if (lowerUrl.contains("xiaohongshu.com") || lowerUrl.contains("xhslink.com")) {
+        if (url.contains("xiaohongshu.com") || url.contains("xhslink.com")) {
             return "xiaohongshu";
-        } else if (lowerUrl.contains("mp.weixin.qq.com") || lowerUrl.contains("weixin.qq.com")) {
+        } else if (url.contains("mp.weixin.qq.com") || url.contains("weixin.qq.com")) {
             return "weixin";
-        } else if (lowerUrl.contains("zhihu.com")) {
+        } else if (url.contains("zhihu.com")) {
             return "zhihu";
-        } else if (lowerUrl.contains("douyin.com") || lowerUrl.contains("iesdouyin.com")) {
+        } else if (url.contains("douyin.com") || url.contains("iesdouyin.com")) {
             return "douyin";
         }
-        return "unknown";
+        return "other";
     }
 
     /**
-     * 模拟OCR处理（待替换为实际OCR SDK调用）
+     * 模拟链接处理（待feat_005实现真实逻辑）
      */
-    @SneakyThrows
-    private void simulateOcrProcessing(SourceImportJob job) {
-        job.startProcessing();
-        jobRepository.save(job);
-
-        // 模拟异步处理延迟
-        Thread.sleep(500);
-
-        // TODO: 集成百度OCR SDK后替换为实际识别逻辑
-        // 模拟检测到博主
-        List<SourceImportJobResponse.DetectedAuthor> detectedAuthors = new ArrayList<>();
-        SourceImportJobResponse.DetectedAuthor author = new SourceImportJobResponse.DetectedAuthor();
-        author.setName("示例博主");
-        author.setAvatarUrl("https://example.com/avatar.jpg");
-        author.setConfidence(0.95);
-        author.setPlatform("xiaohongshu");
-        author.setHomeUrl("https://www.xiaohongshu.com/user/example");
-        detectedAuthors.add(author);
-
-        job.setDetectedAuthorsJson(toJson(detectedAuthors));
-        job.setPlatform("xiaohongshu");
-        job.complete();
-        jobRepository.save(job);
-
-        log.info("OCR任务 {} 模拟处理完成", job.getId());
-    }
-
-    /**
-     * 模拟链接抓取（待替换为实际抓取逻辑）
-     */
-    @SneakyThrows
     private void simulateLinkProcessing(SourceImportJob job) {
         job.startProcessing();
-        jobRepository.save(job);
-
-        // 模拟异步处理延迟
-        Thread.sleep(500);
-
-        // TODO: 实现实际链接抓取逻辑
-        // 模拟抓取到作者信息
-        List<SourceImportJobResponse.DetectedAuthor> detectedAuthors = new ArrayList<>();
-        SourceImportJobResponse.DetectedAuthor author = new SourceImportJobResponse.DetectedAuthor();
-        author.setName("链接作者");
-        author.setAvatarUrl("https://example.com/avatar2.jpg");
-        author.setConfidence(1.0);
-        author.setPlatform(job.getPlatform());
-        author.setHomeUrl(job.getSourceUrl());
-        detectedAuthors.add(author);
-
-        job.setDetectedAuthorsJson(toJson(detectedAuthors));
+        job.setDetectedAuthorsJson("[]");
         job.complete();
         jobRepository.save(job);
-
-        log.info("链接抓取任务 {} 模拟处理完成", job.getId());
-    }
-
-    @SneakyThrows
-    private String toJson(Object obj) {
-        return objectMapper.writeValueAsString(obj);
     }
 }

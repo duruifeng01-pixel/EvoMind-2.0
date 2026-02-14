@@ -18,6 +18,9 @@ sealed class Screen(val route: String) {
 
     // Feature Screens
     object ScreenshotImport : Screen("screenshot_import")
+    object OcrResult : Screen("ocr_result/{taskId}") {
+        fun createRoute(taskId: String) = "ocr_result/$taskId"
+    }
     object VoiceRecord : Screen("voice_record")
     object CognitiveCard : Screen("cognitive_card/{cardId}") {
         fun createRoute(cardId: String) = "cognitive_card/$cardId"

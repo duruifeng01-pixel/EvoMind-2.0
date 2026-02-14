@@ -9,12 +9,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.evomind.ui.screens.agent.AgentScreen
 import com.evomind.ui.screens.challenges.ChallengesScreen
 import com.evomind.ui.screens.corpus.CorpusScreen
 import com.evomind.ui.screens.feed.FeedScreen
 import com.evomind.ui.screens.home.HomeScreen
 import com.evomind.ui.screens.login.LoginScreen
+import com.evomind.ui.screens.ocr.OcrImportScreen
+import com.evomind.ui.screens.ocr.OcrResultScreen
 import com.evomind.ui.screens.profile.ProfileScreen
 import com.evomind.ui.screens.sources.SourcesScreen
 import com.evomind.ui.screens.welcome.WelcomeScreen
@@ -116,7 +120,30 @@ fun EvoMindNavHost(
 
             // Feature Screens
             composable(Screen.ScreenshotImport.route) {
-                // TODO: ScreenshotImportScreen
+                OcrImportScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToResult = { taskId ->
+                        navController.navigate(Screen.OcrResult.createRoute(taskId))
+                    }
+                )
+            }
+
+            composable(
+                route = Screen.OcrResult.route,
+                arguments = listOf(
+                    navArgument("taskId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                OcrResultScreen(
+                    taskId = taskId,
+                    onNavigateBack = { navController.popBackStack() },
+                    onImportComplete = {
+                        navController.navigate(Screen.Sources.route) {
+                            popUpTo(Screen.Home.route)
+                        }
+                    }
+                )
             }
 
             composable(Screen.VoiceRecord.route) {
