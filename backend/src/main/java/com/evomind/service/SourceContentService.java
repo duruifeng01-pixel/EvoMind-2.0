@@ -32,6 +32,19 @@ public interface SourceContentService {
     SourceContent saveContent(Long sourceId, String content, String title, String author);
 
     /**
+     * 保存原文内容（完整版）
+     * @param userId 用户ID
+     * @param sourceId 来源ID
+     * @param title 标题
+     * @param content 内容文本
+     * @param sourceUrl 来源URL
+     * @param contentType 内容类型
+     * @return 保存的内容
+     */
+    SourceContent saveContent(Long userId, Long sourceId, String title, String content,
+                              String sourceUrl, String contentType);
+
+    /**
      * 更新内容抓取状态
      * @param contentId 内容ID
      * @param status 状态

@@ -103,18 +103,18 @@
     "id": "feat_007",
     "category": "functional",
     "priority": "high",
-    "description": "AI认知卡片生成 - 文心一言API",
+    "description": "AI认知卡片生成 - DeepSeek API集成",
     "steps": [
       "✅ Card实体扩展：添加导读字段、关键词、阅读时长",
       "✅ 脑图节点实体：MindMapNode树结构存储",
       "✅ 原文内容实体：SourceContent分段存储",
-      "集成文心一言API",
-      "Prompt工程优化",
-      "核心观点提取",
-      "金句识别",
-      "案例提取与结构化"
+      "✅ DeepSeek API配置与集成",
+      "✅ Prompt工程：核心观点提取、金句识别、案例提取",
+      "✅ AI生成服务：一句话导读、关键词提取、脑图生成",
+      "✅ AI卡片生成Controller：/ai-cards/preview、/ai-cards/generate",
+      "✅ 单元测试覆盖"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_008",

@@ -285,6 +285,40 @@ Android端实现:
 
 Git commit: "feat: feat_006 语音快速记录功能 - 完整实现"
 
+[2026-02-14] Session 8: Coding Agent - feat_007 AI认知卡片生成 (DeepSeek API)
+
+后端实现:
+✅ 创建DeepSeekConfig配置类：API密钥、模型、超时、重试策略
+✅ 创建AiGenerationService接口：卡片生成、脑图生成、金句/案例提取
+✅ 实现AiGenerationServiceImpl：
+   - 集成DeepSeek API (deepseek-chat模型)
+   - Prompt工程：一句话导读、核心观点摘要、关键词提取
+   - Prompt工程：金句识别、案例提取、脑图结构生成
+   - 智能内容截断与Token估算
+   - 阅读时长计算（中英文混合）
+   - JSON响应解析与错误处理
+✅ 创建AiGenerateCardRequest/AiGeneratedContentResponse DTO
+✅ 创建AiCardController API控制器：
+   - POST /ai-cards/preview - AI生成预览（不保存）
+   - POST /ai-cards/generate - 生成并保存卡片
+   - POST /ai-cards/generate-from-source/{sourceId} - 从来源生成
+✅ 更新CardResponse添加AI生成字段：goldenQuotes, cases
+✅ 更新SourceContentService添加saveContent重载方法
+✅ 更新application.yml添加DeepSeek配置
+✅ 创建AiGenerationServiceTest单元测试（Prompt构建、工具方法测试）
+
+AI生成能力:
+✅ 一句话导读生成（50字以内核心观点）
+✅ 结构化摘要（3-5个核心观点，300-500字）
+✅ 关键词提取（5-8个标签）
+✅ 金句识别（带解释的金句列表）
+✅ 案例提取（标题、内容、类型、关联观点）
+✅ 脑图自动生成（3-5主分支、2-4子节点的树形结构）
+✅ 阅读时长计算（中文300字/分钟、英文200词/分钟）
+✅ Token使用量统计
+
+Git commit: "feat: feat_007 AI认知卡片生成 - DeepSeek API集成"
+
 === 注意事项 ===
 
 - 严格遵循国内合规要求

@@ -83,6 +83,33 @@ public class SourceContentServiceImpl implements SourceContentService {
         content.ifPresent(sourceContentRepository::delete);
     }
 
+    @Override
+    @Transactional
+    public SourceContent saveContent(Long userId, Long sourceId, String title, String content,
+                                     String sourceUrl, String contentType) {
+        String hash = calculateHash(content);
+        
+        SourceContent sourceContent = new SourceContent();
+        sourceContent.setUserId(userId);
+        sourceContent.setSourceId(sourceId);
+        sourceContent.setTitle(title);
+        sourceContent.setContentText(content);
+        sourceContent.setSourceUrl(sourceUrl);
+        sourceContent.setContentType(contentType);
+        sourceContent.setContentHash(hash);
+        sourceContent.setFetchStatus("SUCCESS");
+        sourceContent.setIsProcessed(true);
+        
+        // 计算段落数和字数
+        if (content != null) {
+            String[] paragraphs = content.split("\\n\\s*\\n");
+            sourceContent.setParagraphCount(paragraphs.length);
+            sourceContent.setWordCount(content.length());
+        }
+        
+        return sourceContentRepository.save(sourceContent);
+    }
+
     private String calculateHash(String content) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
