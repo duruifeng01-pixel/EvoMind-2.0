@@ -3,6 +3,7 @@ package com.evomind.service.impl;
 import com.evomind.dto.request.ConfirmImportRequest;
 import com.evomind.dto.request.LinkImportRequest;
 import com.evomind.dto.request.OcrImportRequest;
+import com.evomind.dto.response.LinkScrapeResponse;
 import com.evomind.dto.response.OcrResultResponse;
 import com.evomind.dto.response.SourceImportJobResponse;
 import com.evomind.entity.OcrImportLog;
@@ -13,6 +14,7 @@ import com.evomind.exception.ResourceNotFoundException;
 import com.evomind.repository.OcrImportLogRepository;
 import com.evomind.repository.SourceImportJobRepository;
 import com.evomind.repository.SourceRepository;
+import com.evomind.service.LinkScrapeService;
 import com.evomind.service.OcrService;
 import com.evomind.service.SourceImportService;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -44,6 +46,7 @@ public class SourceImportServiceImpl implements SourceImportService {
     private final OcrImportLogRepository ocrImportLogRepository;
     private final SourceRepository sourceRepository;
     private final OcrService ocrService;
+    private final LinkScrapeService linkScrapeService;
     private final ObjectMapper objectMapper;
 
     // 每日导入限制（免费用户）
@@ -109,11 +112,11 @@ public class SourceImportServiceImpl implements SourceImportService {
 
         SourceImportJob savedJob = jobRepository.save(job);
 
-        // TODO: 异步调用链接抓取服务（feat_005实现）
-        log.info("用户 {} 提交链接抓取任务 {}，待实现抓取逻辑", userId, savedJob.getId());
+        // 异步调用链接抓取服务
+        log.info("用户 {} 提交链接抓取任务 {}，URL: {}", userId, savedJob.getId(), linkRequest.getUrl());
 
-        // 模拟处理完成（实际应该异步处理）
-        simulateLinkProcessing(savedJob);
+        // 同步执行链接抓取
+        executeLinkScrape(savedJob, linkRequest);
 
         return SourceImportJobResponse.fromEntity(savedJob);
     }
@@ -303,19 +306,51 @@ public class SourceImportServiceImpl implements SourceImportService {
             return "weixin";
         } else if (url.contains("zhihu.com")) {
             return "zhihu";
-        } else if (url.contains("douyin.com") || url.contains("iesdouyin.com")) {
-            return "douyin";
+        } else if (url.contains("weibo.com") || url.contains("weibo.cn")) {
+            return "weibo";
         }
         return "other";
     }
 
     /**
-     * 模拟链接处理（待feat_005实现真实逻辑）
+     * 执行链接抓取
      */
-    private void simulateLinkProcessing(SourceImportJob job) {
-        job.startProcessing();
-        job.setDetectedAuthorsJson("[]");
-        job.complete();
-        jobRepository.save(job);
+    private void executeLinkScrape(SourceImportJob job, LinkImportRequest request) {
+        try {
+            job.startProcessing();
+            jobRepository.save(job);
+
+            // 调用链接抓取服务
+            LinkScrapeResponse scrapeResult = linkScrapeService.scrapeUrl(request.getUrl(), request.getExpectedPlatform());
+
+            if (scrapeResult.isSuccess()) {
+                // 构建检测到的作者信息
+                SourceImportJobResponse.DetectedAuthor author = new SourceImportJobResponse.DetectedAuthor();
+                author.setCandidateId("link_" + job.getId());
+                author.setName(scrapeResult.getAuthor());
+                author.setPlatform(job.getPlatform());
+                author.setHomeUrl(scrapeResult.getUrl());
+                author.setConfidence(1.0);
+
+                List<SourceImportJobResponse.DetectedAuthor> authors = List.of(author);
+                job.setDetectedAuthorsJson(objectMapper.writeValueAsString(authors));
+                job.setRawContentPreview(scrapeResult.getContent().substring(0,
+                    Math.min(scrapeResult.getContent().length(), 500)));
+                job.complete();
+
+                log.info("链接抓取成功: jobId={}, 平台={}, 作者={}",
+                    job.getId(), job.getPlatform(), scrapeResult.getAuthor());
+            } else {
+                job.fail(scrapeResult.getErrorMessage());
+                log.error("链接抓取失败: jobId={}, 错误={}",
+                    job.getId(), scrapeResult.getErrorMessage());
+            }
+
+            jobRepository.save(job);
+        } catch (Exception e) {
+            log.error("链接抓取异常", e);
+            job.fail(e.getMessage());
+            jobRepository.save(job);
+        }
     }
 }

@@ -59,15 +59,20 @@
     "id": "feat_005",
     "category": "functional",
     "priority": "high",
-    "description": "链接抓取功能 - 小红书/微信/知乎/抖音",
+    "description": "链接抓取功能 - 小红书/微信/知乎/微博",
     "steps": [
-      "链接解析与验证",
-      "网页内容抓取",
-      "正文内容提取",
-      "图片资源下载",
-      "反爬策略处理"
+      "✅ Jsoup网页抓取引擎",
+      "✅ 小红书链接解析 (xiaohongshu.com)",
+      "✅ 微信公众号链接解析 (mp.weixin.qq.com)",
+      "✅ 知乎链接解析 (zhihu.com)",
+      "✅ 微博链接解析 (weibo.com)",
+      "✅ 反爬策略：User-Agent轮换、请求延迟",
+      "✅ 内容清洗与格式化",
+      "✅ 图片资源提取",
+      "✅ Android端链接导入页面",
+      "✅ 链接导入ViewModel与Repository"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_006",

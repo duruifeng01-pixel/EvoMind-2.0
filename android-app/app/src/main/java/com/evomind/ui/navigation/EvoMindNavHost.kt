@@ -11,6 +11,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.evomind.ui.components.linkimport.LinkImportScreen
 import com.evomind.ui.screens.agent.AgentScreen
 import com.evomind.ui.screens.challenges.ChallengesScreen
 import com.evomind.ui.screens.corpus.CorpusScreen
@@ -143,6 +144,12 @@ fun EvoMindNavHost(
                             popUpTo(Screen.Home.route)
                         }
                     }
+                )
+            }
+
+            composable(Screen.LinkImport.route) {
+                LinkImportScreen(
+                    onNavigateBack = { navController.popBackStack() }
                 )
             }
 

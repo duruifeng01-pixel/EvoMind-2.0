@@ -38,6 +38,40 @@ interface OcrApi {
      */
     @GET("sources/import-limit")
     suspend fun getImportLimit(): Response<ApiResponse<ImportLimitDto>>
+
+    // ========== 链接导入 API ==========
+
+    /**
+     * 提交链接抓取任务
+     */
+    @POST("sources/link-import")
+    suspend fun submitLinkImport(
+        @Body request: LinkImportRequestDto
+    ): Response<ApiResponse<LinkImportResponseDto>>
+
+    /**
+     * 获取链接导入任务状态
+     */
+    @GET("sources/link-import/{taskId}")
+    suspend fun getLinkImportStatus(
+        @Path("taskId") taskId: String
+    ): Response<ApiResponse<LinkImportResponseDto>>
+
+    /**
+     * 取消链接导入任务
+     */
+    @POST("sources/link-import/{taskId}/cancel")
+    suspend fun cancelLinkImport(
+        @Path("taskId") taskId: String
+    ): Response<ApiResponse<Unit>>
+
+    /**
+     * 重试链接导入任务
+     */
+    @POST("sources/link-import/{taskId}/retry")
+    suspend fun retryLinkImport(
+        @Path("taskId") taskId: String
+    ): Response<ApiResponse<LinkImportResponseDto>>
 }
 
 /**
@@ -116,3 +150,70 @@ data class ImportLimitDto(
     val isExceeded: Boolean,
     val remaining: Int
 )
+
+// ========== 链接导入 DTO ==========
+
+data class LinkImportRequestDto(
+    val url: String,
+    val expectedPlatform: String? = null
+)
+
+data class LinkImportResponseDto(
+    val taskId: String,
+    val url: String,
+    val status: String,
+    val platform: String?,
+    val result: LinkScrapeResultDto?,
+    val errorMessage: String?,
+    val createdAt: String,
+    val completedAt: String?
+) {
+    fun toLinkImportTask(): com.evomind.data.model.LinkImportTask {
+        return com.evomind.data.model.LinkImportTask(
+            id = taskId,
+            url = url,
+            status = com.evomind.data.model.LinkImportStatus.valueOf(status),
+            platform = platform,
+            result = result?.toLinkScrapeResult(),
+            createdAt = java.time.LocalDateTime.parse(createdAt),
+            completedAt = completedAt?.let { java.time.LocalDateTime.parse(it) },
+            errorMessage = errorMessage
+        )
+    }
+}
+
+data class LinkScrapeResultDto(
+    val success: Boolean,
+    val url: String,
+    val title: String?,
+    val content: String?,
+    val author: String?,
+    val platform: String?,
+    val images: List<ImageInfoDto>?,
+    val scrapedAt: String
+) {
+    fun toLinkScrapeResult(): com.evomind.data.model.LinkScrapeResult {
+        return com.evomind.data.model.LinkScrapeResult(
+            success = success,
+            url = url,
+            title = title,
+            content = content,
+            author = author,
+            platform = platform,
+            images = images?.map { it.toImageInfo() } ?: emptyList(),
+            scrapedAt = java.time.LocalDateTime.parse(scrapedAt)
+        )
+    }
+}
+
+data class ImageInfoDto(
+    val url: String,
+    val description: String?
+) {
+    fun toImageInfo(): com.evomind.data.model.LinkScrapeResult.ImageInfo {
+        return com.evomind.data.model.LinkScrapeResult.ImageInfo(
+            url = url,
+            description = description
+        )
+    }
+}

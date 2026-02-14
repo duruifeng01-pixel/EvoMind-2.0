@@ -206,6 +206,48 @@ Android端:
 - 百度文心一言API
 - 微信支付/支付宝
 
+=== Session 5 完成工作 ===
+✅ feat_004: 截图OCR识别功能 - 百度OCR SDK集成
+- 创建 OcrImportRequest, OcrResultResponse, ConfirmImportRequest DTO
+- 创建 OcrImportLog 实体和 OcrImportLogRepository
+- 实现 OcrService 接口和 OcrServiceImpl（百度OCR API集成）
+- 创建 SourceController OCR端点 (/sources/ocr-import, /sources/confirm-import)
+- 创建 V6 数据库迁移脚本
+- 创建 OcrServiceTest 单元测试
+- Android端: OcrResult, OcrRepository, OcrUseCase
+- Android端: OcrImportScreen, OcrResultScreen
+- Android端: OcrImportViewModel, OcrResultViewModel
+- 导航更新: Screen.kt, EvoMindNavHost.kt
+- Git commit: "feat: feat_004 截图OCR识别功能 - 完整实现"
+
+=== Session 6 完成工作 ===
+✅ feat_005: 链接抓取功能 - 小红书/微信/知乎/抖音
+- Backend:
+  * 添加 Jsoup 依赖到 pom.xml
+  * 创建 LinkScrapeService 接口和 LinkScrapeServiceImpl
+  * 支持小红书链接解析 (xiaohongshu.com)
+  * 支持微信公众号链接解析 (mp.weixin.qq.com)
+  * 支持知乎链接解析 (zhihu.com/zhuanlan.zhihu.com)
+  * 支持抖音链接解析 (douyin.com)
+  * 反爬策略: User-Agent轮换、请求延迟、超时处理
+  * 内容清洗与格式化
+  * 图片资源提取与下载
+  * 创建 LinkScrapeResponse DTO 和 ScrapedContent 实体
+  * 创建 ScrapedContentRepository
+  * 创建 V7 数据库迁移脚本
+  * 扩展 SourceImportServiceImpl 链接抓取流程
+  * 创建 LinkScrapeServiceTest 单元测试
+- Android:
+  * 创建 LinkImport 数据模型 (LinkImportRequest, LinkScrapeResult, LinkImportTask, PlatformType)
+  * 创建 LinkImportRepository 和 LinkImportRepositoryImpl
+  * 创建 LinkImportUseCase
+  * 创建 LinkImportViewModel
+  * 创建 LinkImportScreen (Jetpack Compose UI)
+  * 更新 Screen.kt 添加 LinkImport 路由
+  * 更新 EvoMindNavHost.kt 添加 LinkImportScreen
+  * 扩展 OcrApi.kt 添加链接导入API
+- Git commit: "feat: feat_005 链接抓取功能 - 完整实现"
+
 === 注意事项 ===
 
 - 严格遵循国内合规要求
