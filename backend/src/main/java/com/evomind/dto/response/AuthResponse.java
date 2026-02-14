@@ -11,6 +11,7 @@ public class AuthResponse {
     private String tokenType;
     private Long expiresIn;
     private UserInfo user;
+    private Boolean isNewUser;
 
     @Data
     @Builder
