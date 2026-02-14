@@ -11,7 +11,7 @@
       "配置Room数据库",
       "设置Hilt依赖注入"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_002",
@@ -25,7 +25,7 @@
       "配置JWT认证",
       "设置Swagger API文档"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_003",
@@ -486,6 +486,216 @@
       "手动切换",
       "跟随系统",
       "对比度优化"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_036",
+    "category": "functional",
+    "priority": "high",
+    "description": "进化计划定制系统",
+    "steps": [
+      "用户诉求标签选择",
+      "当前水平评估",
+      "目标设定",
+      "生成个性化进化计划",
+      "计划进度追踪"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_037",
+    "category": "functional",
+    "priority": "high",
+    "description": "AI摘要功能 - 长文自动摘要",
+    "steps": [
+      "长文本分段处理",
+      "关键信息提取",
+      "结构化摘要生成",
+      "一键复制摘要",
+      "摘要质量反馈"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_038",
+    "category": "functional",
+    "priority": "medium",
+    "description": "脑图编辑与导出",
+    "steps": [
+      "脑图节点编辑",
+      "节点增删改",
+      "关系线调整",
+      "脑图导出图片",
+      "脑图导出PDF"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_039",
+    "category": "functional",
+    "priority": "high",
+    "description": "信息源管理系统",
+    "steps": [
+      "信息源列表展示",
+      "信息源分类标签",
+      "信息源启用/禁用",
+      "信息源更新频率设置",
+      "信息源内容筛选"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_040",
+    "category": "functional",
+    "priority": "medium",
+    "description": "内容去重与相似度检测",
+    "steps": [
+      "相似内容识别",
+      "重复内容标记",
+      "自动去重处理",
+      "内容版本管理",
+      "更新内容提醒"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_041",
+    "category": "functional",
+    "priority": "high",
+    "description": "安全与隐私保护",
+    "steps": [
+      "本地数据加密存储",
+      "敏感信息脱敏",
+      "应用锁/指纹解锁",
+      "隐私政策展示",
+      "数据删除功能"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_042",
+    "category": "functional",
+    "priority": "medium",
+    "description": "帮助与反馈系统",
+    "steps": [
+      "使用教程",
+      "常见问题FAQ",
+      "在线客服入口",
+      "问题反馈提交",
+      "功能建议收集"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_043",
+    "category": "functional",
+    "priority": "high",
+    "description": "网络层架构与API封装",
+    "steps": [
+      "Retrofit网络层封装",
+      "统一错误处理",
+      "请求重试机制",
+      "离线请求队列",
+      "网络状态监听"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_044",
+    "category": "functional",
+    "priority": "medium",
+    "description": "图片处理与缓存",
+    "steps": [
+      "图片压缩处理",
+      "图片缓存策略",
+      "WebP格式支持",
+      "懒加载实现",
+      "图片预加载"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_045",
+    "category": "functional",
+    "priority": "high",
+    "description": "应用性能监控",
+    "steps": [
+      "崩溃日志收集",
+      "性能指标监控",
+      "ANR检测",
+      "内存泄漏检测",
+      "用户行为埋点"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_046",
+    "category": "functional",
+    "priority": "medium",
+    "description": "热更新与动态配置",
+    "steps": [
+      "远程配置下发",
+      "功能开关控制",
+      "紧急修复通道",
+      "版本兼容性处理",
+      "灰度发布支持"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_047",
+    "category": "functional",
+    "priority": "high",
+    "description": "数据库迁移与版本管理",
+    "steps": [
+      "Room数据库迁移",
+      "数据备份策略",
+      "版本兼容性处理",
+      "数据恢复机制",
+      "数据库性能优化"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_048",
+    "category": "functional",
+    "priority": "medium",
+    "description": "单元测试与集成测试",
+    "steps": [
+      "ViewModel单元测试",
+      "Repository测试",
+      "UI自动化测试",
+      "API接口测试",
+      "测试覆盖率报告"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_049",
+    "category": "functional",
+    "priority": "high",
+    "description": "后端API开发 - 用户模块",
+    "steps": [
+      "用户注册接口",
+      "用户登录接口",
+      "用户信息管理",
+      "微信授权登录",
+      "JWT认证中间件"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_050",
+    "category": "functional",
+    "priority": "high",
+    "description": "后端API开发 - 内容模块",
+    "steps": [
+      "信息源管理接口",
+      "内容抓取接口",
+      "认知卡片CRUD",
+      "脑图数据接口",
+      "内容搜索接口"
     ],
     "passes": false
   }
