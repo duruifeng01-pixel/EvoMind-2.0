@@ -1,5 +1,6 @@
 package com.evomind.service.impl;
 
+import com.evomind.dto.request.SubmitArtifactRequest;
 import com.evomind.dto.response.ChallengeTaskResponse;
 import com.evomind.entity.ChallengeTask;
 import com.evomind.entity.UserTaskProgress;
@@ -206,5 +207,33 @@ public class ChallengeTaskServiceImpl implements ChallengeTaskService {
         }
 
         return response;
+    }
+
+    @Override
+    @Transactional
+    public ChallengeTaskResponse submitArtifact(Long userId, Long taskId, SubmitArtifactRequest request) {
+        ChallengeTask task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("任务不存在"));
+
+        String today = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        // 查找或创建用户进度
+        UserTaskProgress progress = progressRepository
+                .findByUserIdAndTaskIdAndDateKey(userId, taskId, today)
+                .orElseGet(() -> createNewProgress(userId, taskId, today));
+
+        // 如果已完成则不更新
+        if (!progress.getIsCompleted()) {
+            // 提交作品视为完成一次任务
+            progress.incrementProgress(1, task.getTargetCount());
+            progress.setUpdatedAt(LocalDateTime.now());
+            progressRepository.save(progress);
+
+            log.info("用户 {} 提交任务 {} 作品: {}", userId, taskId, request.getTitle());
+        }
+
+        // TODO: 保存作品信息到作品表
+
+        return getTaskWithProgress(task, progress);
     }
 }

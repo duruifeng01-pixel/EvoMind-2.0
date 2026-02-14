@@ -1,7 +1,9 @@
 package com.evomind.service;
 
 import com.evomind.dto.request.CreateCommentRequest;
+import com.evomind.dto.request.FinalizeDiscussionRequest;
 import com.evomind.dto.response.CommentResponse;
+import com.evomind.dto.response.DiscussionInsightResponse;
 import com.evomind.dto.response.DiscussionResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,4 +64,9 @@ public interface DiscussionService {
      * 取消点赞
      */
     void unlikeComment(Long userId, Long commentId);
+
+    /**
+     * 结束讨论并生成洞察
+     */
+    DiscussionInsightResponse finalizeDiscussion(Long userId, Long discussionId, FinalizeDiscussionRequest request);
 }

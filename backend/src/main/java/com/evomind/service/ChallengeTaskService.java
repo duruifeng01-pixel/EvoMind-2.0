@@ -1,5 +1,6 @@
 package com.evomind.service;
 
+import com.evomind.dto.request.SubmitArtifactRequest;
 import com.evomind.dto.response.ChallengeTaskResponse;
 
 import java.util.List;
@@ -38,6 +39,11 @@ public interface ChallengeTaskService {
      * 记录用户行为（用于自动更新任务进度）
      */
     void recordUserActivity(Long userId, ActivityType activityType);
+
+    /**
+     * 提交作品
+     */
+    ChallengeTaskResponse submitArtifact(Long userId, Long taskId, SubmitArtifactRequest request);
 
     /**
      * 用户活动类型

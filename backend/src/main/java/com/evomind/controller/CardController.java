@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Tag(name = "认知卡片", description = "认知卡片相关接口")
 @RestController
-@RequestMapping("/cards")
+@RequestMapping("/api/v1/cards")
 @RequiredArgsConstructor
 public class CardController {
 

@@ -1,7 +1,9 @@
 package com.evomind.service.impl;
 
 import com.evomind.dto.request.CreateCommentRequest;
+import com.evomind.dto.request.FinalizeDiscussionRequest;
 import com.evomind.dto.response.CommentResponse;
+import com.evomind.dto.response.DiscussionInsightResponse;
 import com.evomind.dto.response.DiscussionResponse;
 import com.evomind.entity.Discussion;
 import com.evomind.entity.DiscussionComment;
@@ -20,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -210,6 +213,45 @@ public class DiscussionServiceImpl implements DiscussionService {
         commentRepository.save(comment);
 
         log.info("用户 {} 取消点赞评论 {}", userId, commentId);
+    }
+
+    @Override
+    @Transactional
+    public DiscussionInsightResponse finalizeDiscussion(Long userId, Long discussionId, FinalizeDiscussionRequest request) {
+        Discussion discussion = discussionRepository.findById(discussionId)
+                .orElseThrow(() -> new ResourceNotFoundException("讨论不存在"));
+
+        // 获取用户在该讨论下的所有评论统计
+        List<DiscussionComment> userComments = commentRepository.findByDiscussionIdAndUserId(discussionId, userId);
+        long topLevelCount = userComments.stream().filter(c -> c.getParentId() == null).count();
+        long replyCount = userComments.stream().filter(c -> c.getParentId() != null).count();
+        int totalLikes = userComments.stream().mapToInt(c -> c.getLikeCount() != null ? c.getLikeCount() : 0).sum();
+
+        // TODO: 调用AI服务生成洞察总结
+        // 目前返回模拟数据
+        DiscussionInsightResponse response = new DiscussionInsightResponse();
+        response.setId(1L);
+        response.setDiscussionId(discussionId);
+        response.setUserId(userId);
+        response.setAiSummary("基于讨论内容，AI生成的核心观点总结...");
+        response.setKeyInsights(List.of(
+                "AI技术正在重塑传统行业的工作模式",
+                "人机协作将成为未来的主流工作方式",
+                "持续学习是应对AI时代的关键能力"
+        ));
+        response.setPersonalInsight(request.getPersonalInsight());
+
+        DiscussionInsightResponse.ParticipationStats stats = new DiscussionInsightResponse.ParticipationStats();
+        stats.setTopLevelComments((int) topLevelCount);
+        stats.setReplies((int) replyCount);
+        stats.setTotalLikesReceived(totalLikes);
+        stats.setTotalParticipants(discussion.getParticipantCount());
+        response.setStats(stats);
+
+        response.setCreatedAt(LocalDateTime.now());
+
+        log.info("用户 {} 结束讨论 {}，生成洞察", userId, discussionId);
+        return response;
     }
 
     /**

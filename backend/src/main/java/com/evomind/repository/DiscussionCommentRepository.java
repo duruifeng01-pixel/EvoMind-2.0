@@ -47,4 +47,9 @@ public interface DiscussionCommentRepository extends JpaRepository<DiscussionCom
      * 查询用户是否参与过某讨论
      */
     boolean existsByDiscussionIdAndUserId(Long discussionId, Long userId);
+
+    /**
+     * 查询用户在指定讨论下的所有评论
+     */
+    List<DiscussionComment> findByDiscussionIdAndUserId(Long discussionId, Long userId);
 }
