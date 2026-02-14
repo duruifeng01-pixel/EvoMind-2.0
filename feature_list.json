@@ -39,7 +39,7 @@
       "微信授权登录",
       "JWT Token管理"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_004",
