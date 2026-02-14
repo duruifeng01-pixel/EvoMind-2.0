@@ -1,0 +1,47 @@
+# Test configuration
+spring:
+  application:
+    name: evomind-test
+  
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+  
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 1
+
+# JWT Configuration
+jwt:
+  secret: test-secret-key-for-jwt-signing-in-test-environment-only
+  expiration: 86400000
+
+# Logging
+logging:
+  level:
+    com.evomind: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Test specific properties
+app:
+  sms:
+    enabled: false
+  wechat:
+    enabled: false
+  ai:
+    enabled: false
