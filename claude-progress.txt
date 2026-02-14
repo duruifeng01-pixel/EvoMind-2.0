@@ -107,6 +107,31 @@ feat_003: 用户注册与登录系统 - 手机号注册、短信验证码、微�
 - 新增 7 个 Repository 接口：支持自定义查询和聚合统计
 - 新增 5 个 Service 接口及实现：完整业务逻辑和事务管理
 
+[2026-02-14] Session 5: Coding Agent - 完善认知卡片完整功能
+✅ 扩展Card实体：添加一句话导读(oneSentenceSummary)、认知冲突标志(hasConflict)、
+   原文引用字段(sourceTitle, keywords, readingTimeMinutes)
+✅ 创建MindMapNode实体：脑图节点树结构，支持层级关系和原文段落关联
+✅ 创建CardConflict实体：认知冲突检测与标记系统
+✅ 创建SourceContent实体：原文内容分段存储与段落级索引
+✅ 实现ConflictDetectionService：冲突检测算法，支持多维度冲突分析
+✅ 实现MindMapService：脑图树构建、节点查询与转换
+✅ 实现SourceContentService：原文段落提取与上下文获取
+✅ 创建CardController API：
+   - GET /cards/feed - 7:3混合Feed流（70%自选源+30%系统推荐）
+   - GET /cards/{id} - 卡片详情（含一句话导读）
+   - GET /cards/{id}/mindmap - 脑图结构查询
+   - GET /cards/{id}/drilldown - 脑图节点原文下钻
+   - GET /cards/{id}/conflicts - 认知冲突列表
+   - POST /cards/{id}/favorite - 收藏/取消收藏
+   - POST /cards/{id}/archive - 归档卡片
+✅ 创建DTO层：CreateCardRequest, CardResponse, MindMapResponse, DrilldownResponse
+✅ 创建UserDetailsImpl：支持用户ID获取的安全上下文
+✅ 关联功能点更新：
+   - feat_007 (AI认知卡片生成): 数据模型基础完成
+   - feat_008 (观点冲突标记系统): 核心数据结构完成
+   - feat_009 (7:3智能混合信息流): Feed流API架构完成
+   - feat_012 (知识脑图自动生成): 脑图数据模型完成
+
 === 后续功能队列（按优先级）===
 1. feat_004: 截图OCR识别功能
 2. feat_004: 截图OCR识别功能

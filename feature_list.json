@@ -89,6 +89,9 @@
     "priority": "high",
     "description": "AI认知卡片生成 - 文心一言API",
     "steps": [
+      "✅ Card实体扩展：添加导读字段、关键词、阅读时长",
+      "✅ 脑图节点实体：MindMapNode树结构存储",
+      "✅ 原文内容实体：SourceContent分段存储",
       "集成文心一言API",
       "Prompt工程优化",
       "核心观点提取",
@@ -103,10 +106,13 @@
     "priority": "high",
     "description": "观点冲突标记系统",
     "steps": [
+      "✅ CardConflict实体：冲突信息存储",
+      "✅ ConflictDetectionService：冲突检测服务",
+      "✅ Card.hasConflict字段：冲突标志",
       "文本相似度计算",
       "主题聚类分析",
       "观点立场识别",
-      "冲突检测算法",
+      "冲突检测算法优化",
       "对比视图展示"
     ],
     "passes": false
@@ -117,6 +123,7 @@
     "priority": "high",
     "description": "7:3智能混合信息流",
     "steps": [
+      "✅ CardController Feed API：/cards/feed 7:3混合流",
       "用户画像构建",
       "内容推荐算法",
       "70%自选源内容",
@@ -159,6 +166,10 @@
     "priority": "high",
     "description": "知识脑图自动生成",
     "steps": [
+      "✅ MindMapNode实体：脑图节点树结构",
+      "✅ MindMapService：脑图服务与API",
+      "✅ CardController脑图API：/cards/{id}/mindmap",
+      "✅ Drilldown API：/cards/{id}/drilldown 原文下钻",
       "知识图谱构建",
       "主题聚类算法",
       "节点关系分析",
