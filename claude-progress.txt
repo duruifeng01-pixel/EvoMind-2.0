@@ -570,5 +570,35 @@ Git commit: "feat: feat_009 7:3智能混合信息流 - 推荐算法与信息茧�
 
 Git commit: "feat: feat_071 内容采集调度系统 - 7:3信息流核心基础设施"
 
+=== Session X 完成工作 ===
+✅ feat_072: Feed流控制机制（每日限额+防重复+自动归档）
+
+三大控制机制实现：
+
+1. 每日配额控制（300条/天）：
+- UserDailyFeedQuota实体：配额追踪
+- getOrCreateQuota()：获取或创建当日配额
+- consume()：消费配额，耗尽后停止推送
+- FeedStats扩展配额信息（dailyLimit/consumedToday/remainingToday/isExhausted）
+
+2. 已读内容防重复（3天冷却期）：
+- UserReadCardRecord实体：记录已读内容和冷却期
+- getExcludedCardIds()：获取冷却期内不推荐的卡片
+- recordCardRead()：记录阅读并设置3天冷却期
+- 自动清理过期记录（每天凌晨3点）
+
+3. 自动归档（7天未读）：
+- archiveOldContent()：归档7天未读内容
+- dailyCleanup()：定时任务清理过期记录和归档
+- CardRepository.findCardsToArchive()：查询待归档内容
+
+数据库迁移：
+- V13__add_feed_quota_and_archive.sql
+- user_daily_feed_quotas表
+- user_read_card_records表
+- cards表添加is_archived, archived_at, archive_reason字段
+
+Git commit: 26e2e6b - Feed流控制机制
+
 === 接下来开发 ===
 feat_010: AI苏格拉底式对话
