@@ -18,6 +18,7 @@ import com.evomind.ui.screens.challenges.ChallengesScreen
 import com.evomind.ui.screens.corpus.CorpusScreen
 import com.evomind.ui.screens.feed.FeedScreen
 import com.evomind.ui.screens.home.HomeScreen
+import com.evomind.ui.screens.share.ShareImageScreen
 import com.evomind.ui.screens.login.LoginScreen
 import com.evomind.ui.screens.login.ForgotPasswordScreen
 import com.evomind.ui.screens.login.ResetPasswordScreen
@@ -265,6 +266,12 @@ fun EvoMindNavHost(
 
             composable(Screen.AbilityReport.route) {
                 AbilityReportScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.ShareImage.route) {
+                ShareImageScreen(
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
