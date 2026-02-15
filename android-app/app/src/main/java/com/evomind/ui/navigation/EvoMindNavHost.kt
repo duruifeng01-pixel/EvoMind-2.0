@@ -257,6 +257,12 @@ fun EvoMindNavHost(
                 // TODO: EvolutionPlanScreen
             }
 
+            composable(Screen.GrowthStats.route) {
+                GrowthStatsScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
             composable(Screen.AbilityReport.route) {
                 // TODO: AbilityReportScreen
             }
