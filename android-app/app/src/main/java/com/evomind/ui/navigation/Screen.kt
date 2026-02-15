@@ -20,6 +20,15 @@ sealed class Screen(val route: String) {
     object Challenges : Screen("challenges")
     object Profile : Screen("profile")
 
+    // Study Group Screens (feat_017)
+    object StudyGroups : Screen("study_groups")
+    object StudyGroupDetail : Screen("study_group/{groupId}") {
+        fun createRoute(groupId: String) = "study_group/$groupId"
+    }
+    object GroupDiscussion : Screen("group_discussion/{discussionId}") {
+        fun createRoute(discussionId: String) = "group_discussion/$discussionId"
+    }
+
     // Feature Screens
     object ScreenshotImport : Screen("screenshot_import")
     object OcrResult : Screen("ocr_result/{taskId}") {
