@@ -715,5 +715,52 @@ Android端实现:
 
 Git commit: "feat: feat_073 密码登录与忘记密码功能 - 完善用户认证体系"
 
+[2026-02-15] Session: Coding Agent - feat_076 算力成本统计与透明化展示 - 完成
+✅ 后端:
+- 创建 ComputingCostRecord 实体：记录用户每日算力成本明细
+  * 成本指标：信息源数/冲突标记/OCR请求/AI Token/对话轮数/训练次数
+  * 成本金额：OCR/AI/抓取/存储各项成本及总成本
+  * 订阅费用：总成本 × 成本倍数（默认2倍）
+- 创建 CostUnitPrice 实体：成本单价配置表
+  * 支持灵活配置各项AI服务单价
+  * 预设8种成本单价（OCR/AI/抓取/存储等）
+- CostStatisticsService：成本统计服务
+  * getComputingCostStats() - 获取成本统计（支持时间范围）
+  * estimateSubscriptionFee() - 基于使用数据预估月订阅费
+  * 成本自动计算和定时更新（每10分钟）
+  * 增量更新接口：incrementOcrCost/incrementAiTokenCost等
+- ComputingCostController：成本统计API
+  * GET /computing-cost/stats - 算力成本统计
+  * GET /computing-cost/estimate - 订阅费预估
+  * GET /computing-cost/unit-prices - 单价配置查询
+- 数据库迁移 V15：创建算力成本相关表并初始化默认单价
+
+✅ Android:
+- ComputingCostStatsDto/CostEstimateDto：成本统计响应DTO
+- ComputingCostApi：算力成本API接口
+- ComputingCostScreen：算力成本展示页面
+  * 订阅费预估卡片（突出显示月费用）
+  * 成本计算公式说明
+  * 成本明细展示（OCR/AI/抓取/存储）
+  * 使用统计（信息源/OCR/AI Token/对话等）
+  * 服务单价列表
+  * 透明定价承诺说明
+- ComputingCostViewModel：成本统计ViewModel
+- 更新导航配置：ProfileScreen 添加算力成本入口
+
+定价模式:
+- 透明成本定价：订阅费 = 算力成本 × 2
+- 默认成本单价：
+  * OCR识别：¥0.05/次
+  * AI调用：¥0.015/千token
+  * 内容抓取：¥0.02/次
+  * 存储：¥0.001/MB/天
+- 预估示例：轻度使用用户月订阅费约 ¥5-15
+
+Git commit: "feat: feat_076 算力成本统计与透明化展示 - 订阅定价基础"
+
 === 接下来开发 ===
-feat_076: 算力成本统计与透明化展示
+根据 DEVELOPMENT_ROADMAP.md，Phase 2 商业闭环功能：
+- feat_077: AIGC内容合规系统 - 标注、审核、敏感词过滤
+- feat_078: 隐私政策/用户协议/AIGC说明页面
+- feat_079: 本地语料库CRUD + 自动标签
