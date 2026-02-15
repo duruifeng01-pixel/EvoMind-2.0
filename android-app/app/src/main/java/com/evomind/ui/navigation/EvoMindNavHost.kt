@@ -13,6 +13,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.evomind.ui.components.linkimport.LinkImportScreen
 import com.evomind.ui.screens.agent.AgentScreen
+import com.evomind.ui.screens.card.CognitiveCardScreen
 import com.evomind.ui.screens.challenges.ChallengesScreen
 import com.evomind.ui.screens.corpus.CorpusScreen
 import com.evomind.ui.screens.feed.FeedScreen
@@ -274,6 +275,29 @@ fun EvoMindNavHost(
                     cardId = cardId,
                     cardTitle = "知识脑图",
                     onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Screen.CognitiveCard.route,
+                arguments = listOf(navArgument("cardId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val cardId = backStackEntry.arguments?.getString("cardId") ?: "0"
+                CognitiveCardScreen(
+                    cardId = cardId,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToMindMap = { id ->
+                        navController.navigate(Screen.MindMap.createRoute(id))
+                    },
+                    onNavigateToSource = { url ->
+                        // TODO: 打开外部浏览器
+                    },
+                    onStartDiscussion = { id ->
+                        // TODO: 跳转苏格拉底对话
+                    },
+                    onShare = {
+                        // TODO: 分享功能
+                    }
                 )
             }
 
