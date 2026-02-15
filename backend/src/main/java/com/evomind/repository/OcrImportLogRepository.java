@@ -31,4 +31,9 @@ public interface OcrImportLogRepository extends JpaRepository<OcrImportLog, Long
      * 统计用户今日识别次数
      */
     long countByUserIdAndCreatedAtAfter(Long userId, java.time.LocalDateTime startOfDay);
+
+    /**
+     * 统计用户在时间范围内的识别次数
+     */
+    long countByUserIdAndCreatedAtBetween(Long userId, java.time.LocalDateTime start, java.time.LocalDateTime end);
 }

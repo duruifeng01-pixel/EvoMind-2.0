@@ -39,6 +39,7 @@ sealed class Screen(val route: String) {
     object AbilityReport : Screen("ability_report")
     object ShareImage : Screen("share_image")
     object Subscription : Screen("subscription")
+    object ComputingCost : Screen("computing_cost")
     object Settings : Screen("settings")
     object Help : Screen("help")
 

@@ -24,5 +24,7 @@ public interface CardConflictRepository extends JpaRepository<CardConflict, Long
 
     long countByUserIdAndIsAcknowledgedFalse(Long userId);
 
+    long countByUserId(Long userId);
+
     boolean existsByCardId1AndCardId2AndUserId(Long cardId1, Long cardId2, Long userId);
 }

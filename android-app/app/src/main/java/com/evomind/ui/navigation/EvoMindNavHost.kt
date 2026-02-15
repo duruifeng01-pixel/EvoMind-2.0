@@ -22,6 +22,7 @@ import com.evomind.ui.screens.login.ForgotPasswordScreen
 import com.evomind.ui.screens.login.ResetPasswordScreen
 import com.evomind.ui.screens.ocr.OcrImportScreen
 import com.evomind.ui.screens.ocr.OcrResultScreen
+import com.evomind.ui.screens.profile.ComputingCostScreen
 import com.evomind.ui.screens.profile.ProfileScreen
 import com.evomind.ui.screens.sources.SourcesScreen
 import com.evomind.ui.screens.welcome.WelcomeScreen
@@ -146,7 +147,15 @@ fun EvoMindNavHost(
             }
 
             composable(Screen.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(
+                    onNavigateToComputingCost = { navController.navigate(Screen.ComputingCost.route) }
+                )
+            }
+
+            composable(Screen.ComputingCost.route) {
+                ComputingCostScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             // Feature Screens

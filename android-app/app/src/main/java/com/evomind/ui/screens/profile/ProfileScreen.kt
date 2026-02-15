@@ -34,7 +34,9 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onNavigateToComputingCost: () -> Unit = {}
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,17 +70,32 @@ fun ProfileScreen() {
             }
 
             // Menu Items
-            val menuItems = listOf(
-                "订阅与算力" to "管理你的订阅和算力配额",
-                "数据同步" to "本地与云端数据同步",
-                "隐私设置" to "管理数据隐私权限",
-                "关于 EvoMind" to "版本信息和使用帮助"
-            )
-
-            items(menuItems.size) { index ->
+            item {
                 MenuItemCard(
-                    title = menuItems[index].first,
-                    subtitle = menuItems[index].second
+                    title = "订阅与算力",
+                    subtitle = "管理你的订阅和算力配额",
+                    onClick = onNavigateToComputingCost
+                )
+            }
+
+            item {
+                MenuItemCard(
+                    title = "数据同步",
+                    subtitle = "本地与云端数据同步"
+                )
+            }
+
+            item {
+                MenuItemCard(
+                    title = "隐私设置",
+                    subtitle = "管理数据隐私权限"
+                )
+            }
+
+            item {
+                MenuItemCard(
+                    title = "关于 EvoMind",
+                    subtitle = "版本信息和使用帮助"
                 )
             }
         }
@@ -177,10 +194,11 @@ private fun StatItem(label: String, value: String) {
 @Composable
 private fun MenuItemCard(
     title: String,
-    subtitle: String
+    subtitle: String,
+    onClick: () -> Unit = {}
 ) {
     Card(
-        onClick = { },
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
