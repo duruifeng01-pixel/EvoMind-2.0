@@ -899,3 +899,39 @@ Android端实现:
 - 完成任务获得积分和体验天数奖励
 
 Git commit: "feat: feat_015 挑战任务系统 - Android端完整实现"
+
+[2026-02-15] Session: Coding Agent - feat_012 知识脑图可视化 - 完善
+
+需求文档对照检查后补充:
+✅ CognitiveCardScreen: 卡片详情页（04-android-uiux-and-modules.md）
+  - 导读、脑图入口、来源跳转、收藏分享
+✅ MindMapScreen: 脑图可视化
+  - 脑图支持点击展开/长按段落操作（需求文档04第22条）
+  - 点击节点查看对应原文（drilldown API）
+✅ 导航集成: Feed→卡片详情→脑图（08全量技术蓝图第28条）
+
+后端已实现:
+✅ MindMapNode实体：脑图节点树结构
+✅ MindMapService：脑图服务与API
+✅ CardController: /cards/{id}/mindmap, /cards/{id}/drilldown
+
+Android端实现:
+✅ CardApi: 获取卡片详情API
+✅ CardRepository: 数据仓库
+✅ Card模型: Domain层数据模型
+✅ CognitiveCardViewModel: 卡片状态管理
+✅ CognitiveCardScreen: 卡片详情页
+  - 标题/导读/一句话总结展示
+  - 脑图入口按钮
+  - 深度讨论按钮
+  - 来源跳转
+  - 收藏/分享功能
+  - 冲突标记提醒
+  - AI生成提示
+✅ MindMapScreen: 脑图可视化UI
+  - 树形节点展示
+  - 展开/收起功能
+  - 节点类型图标
+  - 原文下钻BottomSheet
+
+核心价值: 认知卡片→知识脑图可视化
