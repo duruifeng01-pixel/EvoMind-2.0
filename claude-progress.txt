@@ -838,4 +838,35 @@ Git commit: "feat: feat_077 AIGC内容合规系统 - 标注、审核、敏感词
 === 接下来开发 ===
 根据 DEVELOPMENT_ROADMAP.md，Phase 2 商业闭环功能：
 - feat_078: 隐私政策/用户协议/AIGC说明页面（已完成）
-- feat_079: 本地语料库CRUD + 自动标签
+- feat_079: 本地语料库CRUD + 自动标签（已完成）
+
+[2026-02-15] Session: Coding Agent - feat_079 本地语料库完整CRUD
+
+后端实现:
+✅ 创建语料API POST /api/v1/corpus
+✅ CreateCorpusRequest DTO
+✅ SocraticDialogueServiceImpl 对话完成后自动创建洞察语料
+  - createFromSocraticDialogue() 方法
+  - 对话完成自动保存到语料库
+
+Android端实现:
+✅ CorpusApi Retrofit接口：完整CRUD API定义
+✅ CorpusRepository仓库层：数据操作封装
+✅ UserCorpus Domain模型：语料数据模型
+✅ CorpusViewModel：状态管理
+✅ CorpusScreen完整页面：
+  - 统计卡片展示
+  - 分类Tab筛选（全部/洞察/笔记/AI总结/收藏）
+  - 搜索功能
+  - 列表展示（置顶优先）
+  - 收藏/置顶/归档/删除操作
+✅ RetrofitClient：网络客户端封装
+✅ ApiResponseDto：统一响应包装
+✅ DTO层：UserCorpusResponseDto, CreateCorpusRequestDto
+
+核心价值: 输入→认知→内化 链路已完整
+- OCR/链接导入 → AI认知卡片生成 → 7:3 Feed流展示
+- 用户阅读 → 苏格拉底对话 → 洞察自动保存到语料库
+- 语料库管理 → 搜索/收藏/导出
+
+Git commit: "feat: feat_079 语料库完整CRUD - 搜索导出分类管理"
