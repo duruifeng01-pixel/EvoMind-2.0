@@ -1,35 +1,22 @@
 package com.evomind.data.remote.dto.response
 
-data class AgentModelResponseDto(
+data class AgentModelDto(
     val id: Long?,
     val name: String?,
     val description: String?,
     val modelType: String?,
-    val modelPath: String?,
-    val isActive: Boolean?,
-    val trainingStatus: String?,
-    val accuracy: Double?,
-    val version: Int?,
-    val createdAt: String?,
-    val updatedAt: String?
+    val status: String?,
+    val trainedAt: String?,
+    val corpusCount: Int?,
+    val version: Int?
 )
 
-data class TrainingProgressDto(
-    val modelId: Long?,
+data class TrainingJobDto(
+    val id: Long?,
+    val agentId: Long?,
     val status: String?,
     val progress: Int?,
-    val currentEpoch: Int?,
-    val totalEpochs: Int?,
-    val loss: Double?,
-    val accuracy: Double?,
-    val estimatedTimeRemaining: String?,
-    val startedAt: String?
-)
-
-data class InferenceResultDto(
-    val modelId: Long?,
-    val input: String?,
-    val output: String?,
-    val confidence: Double?,
-    val inferenceTimeMs: Long?
+    val startedAt: String?,
+    val completedAt: String?,
+    val error: String?
 )
