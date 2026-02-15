@@ -20,6 +20,7 @@ import com.evomind.ui.screens.home.HomeScreen
 import com.evomind.ui.screens.login.LoginScreen
 import com.evomind.ui.screens.login.ForgotPasswordScreen
 import com.evomind.ui.screens.login.ResetPasswordScreen
+import com.evomind.ui.screens.mindmap.MindMapScreen
 import com.evomind.ui.screens.ocr.OcrImportScreen
 import com.evomind.ui.screens.ocr.OcrResultScreen
 import com.evomind.ui.screens.privacy.*
@@ -261,6 +262,19 @@ fun EvoMindNavHost(
 
             composable(Screen.Subscription.route) {
                 // TODO: SubscriptionScreen
+            }
+
+            composable(
+                route = Screen.MindMap.route,
+                arguments = listOf(navArgument("topicId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val topicId = backStackEntry.arguments?.getString("topicId") ?: "0"
+                val cardId = topicId.toLongOrNull() ?: 0L
+                MindMapScreen(
+                    cardId = cardId,
+                    cardTitle = "知识脑图",
+                    onBack = { navController.popBackStack() }
+                )
             }
 
             composable(Screen.Settings.route) {

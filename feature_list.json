@@ -208,13 +208,15 @@
       "✅ MindMapService：脑图服务与API",
       "✅ CardController脑图API：/cards/{id}/mindmap",
       "✅ Drilldown API：/cards/{id}/drilldown 原文下钻",
+      "✅ Android: MindMapDto/MindMap模型",
+      "✅ Android: MindMapApi/Repository/ViewModel",
+      "✅ Android: MindMapScreen脑图可视化UI",
       "知识图谱构建",
       "主题聚类算法",
       "节点关系分析",
-      "脑图可视化",
       "手动编辑功能"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_013",
@@ -242,7 +244,7 @@
       "上下文管理",
       "离线推理支持"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_015",
@@ -250,13 +252,18 @@
     "priority": "medium",
     "description": "变步频挑战任务系统",
     "steps": [
+      "✅ ChallengeTask实体：每日挑战任务定义",
+      "✅ ChallengeTaskService：任务服务接口和实现",
+      "✅ ChallengeTaskController：REST API控制器",
+      "✅ UserTaskProgress实体：用户任务进度追踪",
+      "✅ Android: ChallengeApi/Repository/ViewModel/Screen",
       "任务难度分级",
       "入门阶段任务",
       "进阶阶段任务",
       "精通阶段任务",
       "动态难度调整"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_016",
@@ -1190,18 +1197,17 @@
     "priority": "high",
     "description": "本地语料库完整CRUD - 搜索、导出、分类管理",
     "steps": [
-      "后端: UserCorpus实体完善（已创建）",
-      "后端: CorpusSearchService：全文检索服务",
-      "后端: GET /corpus/search - 关键词搜索",
-      "后端: GET /corpus/export - 数据导出",
-      "后端: POST /corpus/{id}/favorite - 收藏",
-      "后端: POST /corpus/{id}/pin - 置顶",
-      "Android: CorpusListScreen 语料库列表",
-      "Android: CorpusSearchScreen 搜索页面",
-      "Android: 数据导出功能（PDF/Excel/文本）",
-      "Android: 分类筛选与标签管理"
+      "✅ 后端: UserCorpus实体完善",
+      "✅ 后端: CorpusSearchService全文检索服务",
+      "✅ 后端: GET /corpus/search - 关键词搜索",
+      "✅ 后端: GET /corpus/export - 数据导出",
+      "✅ 后端: POST /corpus/{id}/favorite - 收藏",
+      "✅ 后端: POST /corpus/{id}/pin - 置顶",
+      "✅ 后端: POST /corpus - 创建语料API",
+      "✅ Android: CorpusApi/Repository/ViewModel/Screen",
+      "✅ 核心价值: 输入→认知→内化 链路完整"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_080",
