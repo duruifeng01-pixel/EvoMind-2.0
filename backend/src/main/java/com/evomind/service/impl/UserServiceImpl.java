@@ -113,6 +113,31 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new BusinessException("用户不存在"));
     }
 
+    @Override
+    @Transactional
+    public User resetPassword(String phone, String newPassword) {
+        User user = findByPhone(phone);
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordUpdatedAt(LocalDateTime.now());
+        return userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public boolean updatePassword(Long userId, String oldPassword, String newPassword) {
+        User user = findById(userId);
+        
+        // 验证旧密码
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            return false;
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPasswordUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+        return true;
+    }
+
     private String generateNickname() {
         return "用户" + System.currentTimeMillis() % 1000000;
     }

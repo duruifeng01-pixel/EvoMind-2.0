@@ -52,4 +52,21 @@ public interface UserService {
      * @return 用户
      */
     User findById(Long id);
+
+    /**
+     * 重置用户密码
+     * @param phone 手机号
+     * @param newPassword 新密码
+     * @return 更新后的用户
+     */
+    User resetPassword(String phone, String newPassword);
+
+    /**
+     * 更新用户密码
+     * @param userId 用户ID
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
+     * @return 是否更新成功
+     */
+    boolean updatePassword(Long userId, String oldPassword, String newPassword);
 }

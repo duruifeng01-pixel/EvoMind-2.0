@@ -18,6 +18,8 @@ import com.evomind.ui.screens.corpus.CorpusScreen
 import com.evomind.ui.screens.feed.FeedScreen
 import com.evomind.ui.screens.home.HomeScreen
 import com.evomind.ui.screens.login.LoginScreen
+import com.evomind.ui.screens.login.ForgotPasswordScreen
+import com.evomind.ui.screens.login.ResetPasswordScreen
 import com.evomind.ui.screens.ocr.OcrImportScreen
 import com.evomind.ui.screens.ocr.OcrResultScreen
 import com.evomind.ui.screens.profile.ProfileScreen
@@ -72,7 +74,35 @@ fun EvoMindNavHost(
                             popUpTo(Screen.Welcome.route) { inclusive = true }
                         }
                     },
-                    onNavigateToRegister = { navController.navigate(Screen.Register.route) }
+                    onNavigateToRegister = { navController.navigate(Screen.Register.route) },
+                    onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) }
+                )
+            }
+
+            composable(Screen.ForgotPassword.route) {
+                ForgotPasswordScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToResetPassword = { phone ->
+                        navController.navigate(Screen.ResetPassword.createRoute(phone))
+                    }
+                )
+            }
+
+            composable(
+                route = Screen.ResetPassword.route,
+                arguments = listOf(
+                    navArgument("phone") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val phone = backStackEntry.arguments?.getString("phone") ?: ""
+                ResetPasswordScreen(
+                    phone = phone,
+                    onNavigateBack = { navController.popBackStack() },
+                    onResetSuccess = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.ForgotPassword.route) { inclusive = true }
+                        }
+                    }
                 )
             }
 

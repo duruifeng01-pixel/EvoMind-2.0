@@ -28,6 +28,9 @@ public class User extends BaseEntity {
     @Column(name = "last_login_at")
     private java.time.LocalDateTime lastLoginAt;
 
+    @Column(name = "password_updated_at")
+    private java.time.LocalDateTime passwordUpdatedAt;
+
     @Column(nullable = false)
     private Boolean enabled = true;
 }

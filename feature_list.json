@@ -1070,5 +1070,322 @@
       "归档字段：cards.is_archived, archived_at, archive_reason"
     ],
     "passes": true
+  },
+  {
+    "id": "feat_073",
+    "category": "functional",
+    "priority": "high",
+    "description": "密码登录与忘记密码功能 - 完善用户认证体系",
+    "steps": [
+      "后端: 密码加密存储(BCrypt)",
+      "后端: POST /auth/login-by-password 密码登录接口",
+      "后端: POST /auth/forgot-password 忘记密码申请",
+      "后端: POST /auth/reset-password 验证码重置密码",
+      "后端: 密码强度校验规则",
+      "Android: 密码登录页面",
+      "Android: 忘记密码流程页面",
+      "Android: 密码输入安全键盘",
+      "数据库: 用户表添加password字段"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_074",
+    "category": "functional",
+    "priority": "high",
+    "description": "平台一键绑定导入 - 微信/小红书/知乎/微博关注列表同步",
+    "steps": [
+      "后端: 平台OAuth2.0授权对接",
+      "后端: 微信公众号关注列表抓取",
+      "后端: 小红书关注列表API对接",
+      "后端: 知乎关注列表API对接",
+      "后端: 微博关注列表API对接",
+      "后端: 关注列表去重与导入",
+      "Android: 平台授权登录组件",
+      "Android: 关注列表选择页面",
+      "Android: 同步进度展示"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_075",
+    "category": "functional",
+    "priority": "high",
+    "description": "学习诉求深度探测与进化计划生成 - AI引导式意图识别",
+    "steps": [
+      "后端: UserIntention实体：用户学习意图存储",
+      "后端: IntentionDetectionService：AI意图识别服务",
+      "后端: EvolutionPlan实体：进化计划数据模型",
+      "后端: EvolutionPlanService：计划生成与调整",
+      "后端: POST /intention/detect - 意图探测对话",
+      "后端: POST /evolution-plan/generate - 生成计划",
+      "后端: GET /evolution-plan/current - 获取当前计划",
+      "Android: 意图探测弹窗组件",
+      "Android: 进化计划展示页面",
+      "Android: 诉求标签管理"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_076",
+    "category": "functional",
+    "priority": "high",
+    "description": "算力成本统计与透明化展示 - 订阅定价基础",
+    "steps": [
+      "后端: ComputingCostRecord实体：算力成本记录",
+      "后端: CostStatisticsService：成本统计服务",
+      "后端: 成本指标：信息源数/冲突标记次数/token消耗/对话轮数/训练次数",
+      "后端: 成本单价配置表",
+      "后端: GET /computing-cost/stats - 算力成本统计",
+      "后端: GET /computing-cost/estimate - 预估订阅费",
+      "后端: 定时任务：每10分钟更新成本",
+      "Android: 算力成本展示页面",
+      "Android: 成本明细列表",
+      "Android: 订阅费计算公式展示"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_077",
+    "category": "functional",
+    "priority": "high",
+    "description": "AIGC内容合规系统 - 标注、审核、敏感词过滤",
+    "steps": [
+      "后端: ContentModerationService：内容审核服务",
+      "后端: 敏感词库集成（国内合规词库）",
+      "后端: 百度/阿里内容审核API对接",
+      "后端: 审核日志记录表",
+      "后端: AI生成内容预处理审核",
+      "后端: 用户内容发布前审核",
+      "Android: AI生成内容标注组件",
+      "Android: 审核不通过提示页面",
+      "数据库: 添加审核状态字段到相关内容表"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_078",
+    "category": "functional",
+    "priority": "high",
+    "description": "隐私政策/用户协议/AIGC说明页面 - 合规必备",
+    "steps": [
+      "Android: PrivacyPolicyScreen 隐私政策页面",
+      "Android: UserAgreementScreen 用户协议页面",
+      "Android: AigcComplianceScreen AIGC合规说明",
+      "Android: 首次启动弹窗展示",
+      "Android: 设置页面入口",
+      "Android: 用户数据导出功能",
+      "Android: 一键注销账号功能",
+      "后端: POST /privacy/export-data - 数据导出",
+      "后端: POST /privacy/delete-account - 注销账号",
+      "后端: 数据脱敏处理"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_079",
+    "category": "functional",
+    "priority": "high",
+    "description": "本地语料库完整CRUD - 搜索、导出、分类管理",
+    "steps": [
+      "后端: UserCorpus实体完善（已创建）",
+      "后端: CorpusSearchService：全文检索服务",
+      "后端: GET /corpus/search - 关键词搜索",
+      "后端: GET /corpus/export - 数据导出",
+      "后端: POST /corpus/{id}/favorite - 收藏",
+      "后端: POST /corpus/{id}/pin - 置顶",
+      "Android: CorpusListScreen 语料库列表",
+      "Android: CorpusSearchScreen 搜索页面",
+      "Android: 数据导出功能（PDF/Excel/文本）",
+      "Android: 分类筛选与标签管理"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_080",
+    "category": "functional",
+    "priority": "high",
+    "description": "脑图可视化组件 - Android端树形图展示",
+    "steps": [
+      "Android: MindMapView 自定义脑图View",
+      "Android: 节点渲染与层级布局",
+      "Android: 双指缩放与拖拽",
+      "Android: 点击展开/折叠",
+      "Android: 节点点击下钻原文",
+      "Android: 脑图节点样式定制",
+      "Android: MindMapScreen 脑图页面",
+      "Android: 与后端脑图API对接",
+      "优化: 大数据量性能优化"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_081",
+    "category": "functional",
+    "priority": "high",
+    "description": "个人中心学习数据展示 - 学习概览与资产中心",
+    "steps": [
+      "后端: UserStatisticsService：用户统计服务",
+      "后端: GET /user/stats/learning - 学习统计数据",
+      "后端: GET /user/assets - 资产中心数据",
+      "后端: GET /user/subscription/usage - 套餐使用统计",
+      "Android: ProfileScreen 重构 - 添加学习数据",
+      "Android: 学习时长图表",
+      "Android: 完成任务数统计",
+      "Android: 语料库规模展示",
+      "Android: 资产中心页面"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_082",
+    "category": "functional",
+    "priority": "medium",
+    "description": "信息源分组管理 - 标签分组与置顶",
+    "steps": [
+      "后端: SourceTag实体：信息源标签",
+      "后端: SourceTagService：标签管理服务",
+      "后端: POST /sources/{id}/tags - 设置标签",
+      "后端: GET /sources/tags - 获取标签列表",
+      "后端: POST /sources/{id}/pin - 置顶信息源",
+      "Android: 标签管理组件",
+      "Android: 信息源分组展示",
+      "Android: 置顶功能",
+      "数据库: source_tags表"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_083",
+    "category": "functional",
+    "priority": "medium",
+    "description": "思维关键词云生成 - 可视化认知重点",
+    "steps": [
+      "后端: KeywordCloudService：关键词云服务",
+      "后端: 关键词提取与权重计算",
+      "后端: GET /corpus/keyword-cloud - 关键词云数据",
+      "Android: KeywordCloudView 关键词云View",
+      "Android: 时间范围选择（日/月/年）",
+      "Android: 关键词云保存图片",
+      "Android: 关键词云分享"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_084",
+    "category": "functional",
+    "priority": "medium",
+    "description": "推送通知系统 - 本地通知与后台推送",
+    "steps": [
+      "后端: NotificationService：推送服务",
+      "后端: 推送配置管理",
+      "Android: NotificationManager封装",
+      "Android: 每日卡片推送",
+      "Android: 任务提醒推送",
+      "Android: 推送设置页面",
+      "Android: 订阅到期提醒",
+      "权限: 通知权限申请"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_085",
+    "category": "style",
+    "priority": "medium",
+    "description": "深色/浅色模式切换 - 主题系统完善",
+    "steps": [
+      "Android: ThemeManager 主题管理",
+      "Android: 深色主题配色方案",
+      "Android: 自动跟随系统主题",
+      "Android: 手动切换开关",
+      "Android: 设置页面主题选项",
+      "Android: 状态栏适配",
+      "Android: 导航栏适配"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_086",
+    "category": "functional",
+    "priority": "low",
+    "description": "信息半衰期管理 - 冷数据区与提醒",
+    "steps": [
+      "后端: ContentFreshnessService：内容新鲜度服务",
+      "后端: 48小时未读自动归入冷数据区",
+      "后端: 知识半衰期检测算法",
+      "Android: 冷数据区页面",
+      "Android: 小红点提醒",
+      "Android: 手动拉回活跃区功能",
+      "Android: 过期知识清理提示"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_087",
+    "category": "functional",
+    "priority": "medium",
+    "description": "作品上传多媒体支持 - 截图/文件/视频/链接",
+    "steps": [
+      "后端: UserWork实体完善",
+      "后端: 多媒体文件存储（OSS/COS）",
+      "后端: 文件类型校验与压缩",
+      "后端: 视频转码处理",
+      "Android: 多媒体选择器",
+      "Android: 截图上传",
+      "Android: 视频上传与压缩",
+      "Android: 文件选择器",
+      "Android: 链接提交"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_088",
+    "category": "functional",
+    "priority": "medium",
+    "description": "解锁式激励机制 - 能力徽章系统",
+    "steps": [
+      "后端: AchievementBadge实体：徽章定义",
+      "后端: UserAchievement实体：用户徽章记录",
+      "后端: AchievementService：徽章授予服务",
+      "后端: 解锁条件配置",
+      "后端: GET /achievements - 获取徽章列表",
+      "Android: BadgeCollectionScreen 徽章墙",
+      "Android: 解锁动画效果",
+      "Android: 徽章分享图生成"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_089",
+    "category": "functional",
+    "priority": "medium",
+    "description": "多平台分享图尺寸适配 - 微信/小红书/知乎",
+    "steps": [
+      "Android: ShareImageGenerator 分享图生成器",
+      "Android: 微信/朋友圈尺寸(1:1/9:16)",
+      "Android: 小红书尺寸(3:4)",
+      "Android: 知乎尺寸(16:9)",
+      "Android: 分享图模板设计",
+      "Android: 分享图编辑功能",
+      "Android: 一键分享SDK集成"
+    ],
+    "passes": false
+  },
+  {
+    "id": "feat_090",
+    "category": "functional",
+    "priority": "high",
+    "description": "AIGC多模型路由策略 - 轻量/重度任务智能调度",
+    "steps": [
+      "后端: AiModelRouterService：模型路由服务",
+      "后端: 任务分级：轻量/重度",
+      "后端: 轻量任务：文心一言轻量版/通义千问轻量版",
+      "后端: 重度任务：文心一言旗舰版/通义千问旗舰版",
+      "后端: 模型健康检查与自动切换",
+      "后端: 成本与质量平衡策略",
+      "后端: 模型调用统计",
+      "配置: 模型配置与权重"
+    ],
+    "passes": false
   }
 ]

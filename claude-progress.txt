@@ -670,5 +670,50 @@ Android端实现:
 
 Git commit: "feat: feat_010 AI苏格拉底式对话 - 完整实现"
 
+[2026-02-15] Session 13: Coding Agent - feat_073 密码登录与忘记密码功能
+
+后端实现:
+✅ 更新User实体：添加passwordUpdatedAt字段
+✅ 创建ForgotPasswordRequest DTO：忘记密码申请
+✅ 创建ResetPasswordRequest DTO：重置密码
+✅ 更新UserService接口：添加resetPassword和updatePassword方法
+✅ 实现UserServiceImpl.resetPassword()：重置密码逻辑
+✅ 实现UserServiceImpl.updatePassword()：修改密码逻辑
+✅ 更新AuthController：
+   - POST /auth/forgot-password - 忘记密码申请，发送验证码
+   - POST /auth/reset-password - 验证码重置密码
+✅ 创建数据库迁移脚本V14__add_password_fields.sql
+
+Android端实现:
+✅ 创建DTO层：
+   - LoginRequestDto, PhoneLoginRequestDto
+   - RegisterRequestDto
+   - ForgotPasswordRequestDto
+   - ResetPasswordRequestDto
+   - SendCodeRequestDto
+✅ 创建AuthResponseDto：认证响应数据模型
+✅ 创建UserInfoDto：用户信息模型
+✅ 创建AuthApi接口：完整的认证API
+   - login() - 密码登录
+   - loginByCode() - 验证码登录
+   - register() - 用户注册
+   - sendVerificationCode() - 发送验证码
+   - forgotPassword() - 忘记密码
+   - resetPassword() - 重置密码
+   - refreshToken() - 刷新Token
+   - checkPhone() - 检查手机号
+✅ 更新LoginScreen：添加"忘记密码？"入口链接
+✅ 创建ForgotPasswordScreen：输入手机号获取验证码
+✅ 创建ResetPasswordScreen：验证码+新密码重置流程
+✅ 密码安全：8-20位长度要求，输入掩码处理
+
+功能特性:
+- 密码登录：支持手机号+密码登录（已存在功能完善）
+- 忘记密码流程：手机号验证 → 验证码发送 → 新密码设置
+- 密码强度校验：8位以上，建议包含字母和数字
+- 界面友好：清晰的步骤提示，错误信息反馈
+
+Git commit: "feat: feat_073 密码登录与忘记密码功能 - 完善用户认证体系"
+
 === 接下来开发 ===
-feat_011: 知识脑图自动生成完善
+feat_076: 算力成本统计与透明化展示

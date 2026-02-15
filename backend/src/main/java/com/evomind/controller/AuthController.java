@@ -220,4 +220,49 @@ public class AuthController {
         boolean exists = userService.existsByPhone(phone);
         return ApiResponse.success(exists ? "手机号已注册" : "手机号未注册", exists);
     }
+
+    @Operation(summary = "忘记密码申请", description = "申请重置密码，发送验证码到手机号")
+    @PostMapping("/forgot-password")
+    public ApiResponse<Void> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        // 检查手机号是否已注册
+        if (!userService.existsByPhone(request.getPhone())) {
+            return ApiResponse.error("该手机号未注册");
+        }
+
+        // 检查冷却时间
+        long cooldown = verificationCodeService.getCooldownSeconds(request.getPhone());
+        if (cooldown > 0) {
+            return ApiResponse.error("请" + cooldown + "秒后再试");
+        }
+
+        // 发送验证码
+        boolean success = verificationCodeService.sendCode(request.getPhone());
+        if (success) {
+            log.info("忘记密码验证码发送成功: {}", request.getPhone());
+            return ApiResponse.success("验证码已发送", null);
+        } else {
+            log.error("忘记密码验证码发送失败: {}", request.getPhone());
+            return ApiResponse.error("验证码发送失败，请稍后重试");
+        }
+    }
+
+    @Operation(summary = "重置密码", description = "使用验证码重置密码")
+    @PostMapping("/reset-password")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        // 验证验证码
+        if (!verificationCodeService.verifyCode(request.getPhone(), request.getVerificationCode())) {
+            return ApiResponse.error("验证码错误或已过期");
+        }
+
+        // 检查手机号是否已注册
+        if (!userService.existsByPhone(request.getPhone())) {
+            return ApiResponse.error("该手机号未注册");
+        }
+
+        // 重置密码
+        userService.resetPassword(request.getPhone(), request.getNewPassword());
+        
+        log.info("密码重置成功: {}", request.getPhone());
+        return ApiResponse.success("密码重置成功，请使用新密码登录", null);
+    }
 }
