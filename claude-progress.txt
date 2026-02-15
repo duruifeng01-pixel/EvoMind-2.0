@@ -935,3 +935,33 @@ Android端实现:
   - 原文下钻BottomSheet
 
 核心价值: 认知卡片→知识脑图可视化
+
+[2026-02-15] Session: 自动化开发系统 - feat_017 小组学习Android端
+
+后端已有:
+✅ DiscussionController: 讨论API
+  - GET /discussions 获取讨论列表
+  - POST /discussions/{id}/reply 回复
+  - GET /discussions/{id}/comments 评论
+  - POST /discussions/comments/{id}/like 点赞
+
+Android端实现:
+✅ StudyGroupDto: 小组/成员/帖子/讨论DTO
+✅ StudyGroupApi: Retrofit接口
+  - 小组列表/详情/创建
+  - 加入/离开小组
+  - 成员列表
+  - 帖子列表/发布
+  - 讨论列表
+  - 打卡签到
+✅ Screen.kt: 添加小组相关导航路由
+  - StudyGroups 小组列表页
+  - StudyGroupDetail 小组详情页
+  - GroupDiscussion 小组讨论页
+
+待后端实现:
+- StudyGroup实体与Controller
+- 小组CRUD API
+- 打卡监督功能
+
+Git commit: "feat: feat_017 小组学习Android端 - DTO/Api/导航"
