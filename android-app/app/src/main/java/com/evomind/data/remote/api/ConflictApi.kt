@@ -1,60 +1,23 @@
 package com.evomind.data.remote.api
 
-import com.evomind.data.remote.dto.ConflictResponseDto
 import com.evomind.data.remote.dto.ApiResponseDto
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
-import retrofit2.http.Query
+import com.evomind.data.remote.dto.response.*
+import retrofit2.Response
+import retrofit2.http.*
 
-/**
- * 冲突检测API接口
- */
 interface ConflictApi {
+    @GET("api/v1/conflicts")
+    suspend fun getConflicts(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): Response<ApiResponseDto<List<ConflictDto>>>
 
-    /**
-     * 检测卡片冲突
-     */
-    @POST("/api/v1/conflicts/detect/{cardId}")
-    suspend fun detectConflicts(
-        @Path("cardId") cardId: Long
-    ): ApiResponseDto<List<ConflictResponseDto>>
+    @GET("api/v1/conflicts/{id}")
+    suspend fun getConflict(@Path("id") id: Long): Response<ApiResponseDto<ConflictDto>>
 
-    /**
-     * 获取未确认冲突
-     */
-    @GET("/api/v1/conflicts/unresolved")
-    suspend fun getUnresolvedConflicts(): ApiResponseDto<List<ConflictResponseDto>>
+    @GET("api/v1/conflicts/{id}/comparison")
+    suspend fun getComparison(@Path("id") id: Long): Response<ApiResponseDto<ConflictComparisonDto>>
 
-    /**
-     * 获取卡片相关冲突
-     */
-    @GET("/api/v1/conflicts/card/{cardId}")
-    suspend fun getConflictsByCard(
-        @Path("cardId") cardId: Long
-    ): ApiResponseDto<List<ConflictResponseDto>>
-
-    /**
-     * 确认冲突
-     */
-    @POST("/api/v1/conflicts/{conflictId}/acknowledge")
-    suspend fun acknowledgeConflict(
-        @Path("conflictId") conflictId: Long
-    ): ApiResponseDto<Unit>
-
-    /**
-     * 检查卡片间冲突
-     */
-    @GET("/api/v1/conflicts/check")
-    suspend fun checkConflictBetween(
-        @Query("cardId1") cardId1: Long,
-        @Query("cardId2") cardId2: Long
-    ): ApiResponseDto<Boolean>
-
-    /**
-     * 获取未确认冲突数量
-     */
-    @GET("/api/v1/conflicts/count/unresolved")
-    suspend fun getUnresolvedConflictCount(): ApiResponseDto<Long>
+    @POST("api/v1/conflicts/{id}/dismiss")
+    suspend fun dismissConflict(@Path("id") id: Long): Response<ApiResponseDto<Unit>>
 }
