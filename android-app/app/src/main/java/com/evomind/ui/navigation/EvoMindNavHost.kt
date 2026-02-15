@@ -30,6 +30,7 @@ import com.evomind.ui.screens.profile.ComputingCostScreen
 import com.evomind.ui.screens.profile.ProfileScreen
 import com.evomind.ui.screens.settings.SettingsScreen
 import com.evomind.ui.screens.sources.SourcesScreen
+import com.evomind.ui.screens.subscription.SubscriptionScreen
 import com.evomind.ui.screens.welcome.WelcomeScreen
 
 @Composable
@@ -277,7 +278,9 @@ fun EvoMindNavHost(
             }
 
             composable(Screen.Subscription.route) {
-                // TODO: SubscriptionScreen
+                SubscriptionScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             composable(
