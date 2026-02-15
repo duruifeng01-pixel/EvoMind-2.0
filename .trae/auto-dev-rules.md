@@ -26,6 +26,7 @@
 - 在 docs 目录下查找需求文档
 - 对照 04-android-uiux-and-modules.md 检查UI需求
 - 对照 03-api-contract.md 检查API需求
+- **需求文档主文件**: `D:\app-EvoMind\AI安卓App开发需求提示词：个人成长认知外骨骼App（EvoMind）.docx`
 
 ### Step 6: 增量开发 - 前后端实现
 **后端开发顺序**:
@@ -43,9 +44,11 @@
 6. Screen UI页面
 
 ### Step 7: 验证测试 - 对照需求检查
+- **必须打开需求文档**: `D:\app-EvoMind\AI安卓App开发需求提示词：个人成长认知外骨骼App（EvoMind）.docx`
 - 对照需求文档检查功能完整性
 - 检查UI组件是否齐全
 - 检查API调用是否完整
+- **必须列出需求文档中对应的功能描述**
 
 ### Step 8: 更新feature_list.json
 - 将新功能标记为 passes: true
