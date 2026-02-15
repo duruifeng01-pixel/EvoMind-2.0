@@ -319,6 +319,61 @@ AI生成能力:
 
 Git commit: "feat: feat_007 AI认知卡片生成 - DeepSeek API集成"
 
+[2026-02-15] Session 9: Coding Agent - feat_008 观点冲突标记系统完善
+
+后端实现:
+✅ 创建TextSimilarityService接口：文本相似度计算服务
+✅ 实现TextSimilarityServiceImpl：TF-IDF + 余弦相似度 + Jaccard相似度
+✅ 创建OpinionAnalysisService接口：AI观点分析服务
+✅ 实现OpinionAnalysisServiceImpl：集成DeepSeek API进行观点冲突检测
+✅ 重构ConflictDetectionServiceImpl：
+   - 两阶段检测流程：相似度过滤 → AI深度分析
+   - 支持异步触发冲突检测
+   - 优化检测性能（限制候选卡片数量）
+✅ 创建ConflictResponse DTO：冲突响应数据结构
+✅ 创建CardConflictController API控制器：
+   - POST /conflicts/detect/{cardId} - 检测卡片冲突
+   - GET /conflicts/unresolved - 获取未确认冲突
+   - GET /conflicts/card/{cardId} - 获取卡片相关冲突
+   - POST /conflicts/{conflictId}/acknowledge - 确认冲突
+   - GET /conflicts/check - 检查卡片间冲突
+   - GET /conflicts/count/unresolved - 获取未确认冲突数量
+
+Android端实现:
+✅ 创建CardConflict数据模型：Domain层实体、冲突类型枚举、严重程度分级
+✅ 创建ConflictApi接口：Retrofit API定义
+✅ 创建ConflictResponseDto：数据转换对象
+✅ 创建ConflictRepository接口和ConflictRepositoryImpl实现
+✅ 创建ConflictComparisonScreen冲突对比页面：
+   - 冲突信息头部展示（类型、分数、主题）
+   - 两张卡片观点对比视图
+   - AI分析结果展示
+   - 确认冲突功能
+✅ 创建ConflictListScreen冲突列表页面：
+   - 未确认冲突列表展示
+   - 冲突严重程度标识
+   - 空状态提示
+✅ 创建ConflictViewModel：
+   - 加载未确认冲突
+   - 检测卡片冲突
+   - 确认冲突操作
+   - 未确认冲突数量监听（用于Badge）
+
+数据库与测试:
+✅ 创建V9__add_conflict_detection_indexes.sql迁移脚本：
+   - card_conflicts表索引优化
+   - cards表索引优化
+✅ 创建TextSimilarityServiceTest单元测试
+
+技术要点:
+- 两阶段冲突检测算法：先通过TF-IDF相似度快速过滤，再用DeepSeek AI深度分析
+- 冲突类型：CONTRADICTORY(观点对立)、COMPLEMENTARY(观点互补)、DIFFERENT_PERSPECTIVE(不同视角)
+- 冲突分数阈值：0.6以上视为有效冲突
+- 相似度阈值：0.5以上进入AI分析阶段
+- 支持模拟模式（无需真实DeepSeek API密钥）
+
+Git commit: "feat: feat_008 观点冲突标记系统 - 完整实现"
+
 === 注意事项 ===
 
 - 严格遵循国内合规要求

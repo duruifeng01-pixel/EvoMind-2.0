@@ -7,12 +7,16 @@ import com.evomind.repository.CardConflictRepository;
 import com.evomind.repository.CardRepository;
 import com.evomind.service.CardService;
 import com.evomind.service.ConflictDetectionService;
+import com.evomind.service.OpinionAnalysisService;
+import com.evomind.service.TextSimilarityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +28,12 @@ public class ConflictDetectionServiceImpl implements ConflictDetectionService {
     private final CardConflictRepository conflictRepository;
     private final CardRepository cardRepository;
     private final CardService cardService;
+    private final TextSimilarityService textSimilarityService;
+    private final OpinionAnalysisService opinionAnalysisService;
+
+    // 相似度阈值
+    private static final double SIMILARITY_THRESHOLD = 0.5;
+    private static final double CONFLICT_SCORE_THRESHOLD = 0.6;
 
     @Override
     @Transactional
@@ -31,38 +41,115 @@ public class ConflictDetectionServiceImpl implements ConflictDetectionService {
         Card card = cardService.getCardById(cardId, null);
         Long userId = card.getUserId();
         
-        List<Card> userCards = cardRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        log.info("开始检测卡片冲突: cardId={}, userId={}", cardId, userId);
+        
+        // 获取用户所有卡片（按时间倒序，限制最近100张以提高性能）
+        List<Card> userCards = cardRepository.findTop100ByUserIdOrderByCreatedAtDesc(userId);
+        
+        // 阶段1: 快速过滤 - 使用文本相似度找出主题相关的卡片
+        List<Card> candidateCards = filterBySimilarity(card, userCards);
+        log.info("相似度过滤后候选卡片数: {}", candidateCards.size());
+        
+        // 阶段2: AI深度分析 - 使用DeepSeek API分析观点冲突
+        List<OpinionAnalysisService.OpinionConflictResult> aiResults =
+            opinionAnalysisService.analyzeBatchConflicts(card, candidateCards);
+        
+        // 阶段3: 保存检测到的冲突
         List<CardConflict> detectedConflicts = new ArrayList<>();
         
-        for (Card otherCard : userCards) {
-            if (otherCard.getId().equals(cardId)) {
+        for (OpinionAnalysisService.OpinionConflictResult result : aiResults) {
+            if (result.isHasConflict() && result.getConflictScore().doubleValue() >= CONFLICT_SCORE_THRESHOLD) {
+                CardConflict conflict = saveConflictResult(result, userId);
+                detectedConflicts.add(conflict);
+                
+                // 更新卡片的冲突标志
+                updateCardConflictFlag(result.getCard1().getId(), userId);
+                updateCardConflictFlag(result.getCard2().getId(), userId);
+            }
+        }
+        
+        log.info("检测到 {} 个冲突", detectedConflicts.size());
+        return detectedConflicts;
+    }
+    
+    /**
+     * 基于文本相似度过滤候选卡片
+     */
+    private List<Card> filterBySimilarity(Card targetCard, List<Card> allCards) {
+        List<Card> candidates = new ArrayList<>();
+        
+        for (Card otherCard : allCards) {
+            if (otherCard.getId().equals(targetCard.getId())) {
                 continue;
             }
             
             // 检查是否已存在冲突记录
             if (conflictRepository.existsByCardId1AndCardId2AndUserId(
-                    Math.min(cardId, otherCard.getId()), 
-                    Math.max(cardId, otherCard.getId()), 
-                    userId)) {
+                    Math.min(targetCard.getId(), otherCard.getId()),
+                    Math.max(targetCard.getId(), otherCard.getId()),
+                    targetCard.getUserId())) {
                 continue;
             }
             
-            // TODO: 调用AI服务进行冲突检测
-            // 这里使用简单的关键词匹配作为示例
-            CardConflict conflict = checkConflictWithAI(card, otherCard);
+            // 计算关键词Jaccard相似度
+            BigDecimal keywordSimilarity = textSimilarityService.calculateJaccardSimilarity(
+                targetCard.getKeywords(),
+                otherCard.getKeywords()
+            );
             
-            if (conflict != null) {
-                conflict.setUserId(userId);
-                conflictRepository.save(conflict);
-                detectedConflicts.add(conflict);
-                
-                // 更新卡片的冲突标志
-                updateCardConflictFlag(cardId, userId);
-                updateCardConflictFlag(otherCard.getId(), userId);
+            // 计算内容余弦相似度（使用标题+摘要+核心观点）
+            String content1 = buildComparisonContent(targetCard);
+            String content2 = buildComparisonContent(otherCard);
+            BigDecimal contentSimilarity = textSimilarityService.calculateCosineSimilarity(content1, content2);
+            
+            // 综合相似度
+            double combinedScore = keywordSimilarity.doubleValue() * 0.6 + contentSimilarity.doubleValue() * 0.4;
+            
+            if (combinedScore >= SIMILARITY_THRESHOLD) {
+                candidates.add(otherCard);
             }
         }
         
-        return detectedConflicts;
+        // 限制候选数量，优先选择相似度高的
+        return candidates.stream()
+            .limit(10)
+            .toList();
+    }
+    
+    /**
+     * 构建用于对比的文本内容
+     */
+    private String buildComparisonContent(Card card) {
+        StringBuilder sb = new StringBuilder();
+        if (card.getTitle() != null) sb.append(card.getTitle()).append(" ");
+        if (card.getOneSentenceSummary() != null) sb.append(card.getOneSentenceSummary()).append(" ");
+        if (card.getKeyPoints() != null) sb.append(card.getKeyPoints());
+        return sb.toString();
+    }
+    
+    /**
+     * 保存冲突分析结果
+     */
+    private CardConflict saveConflictResult(OpinionAnalysisService.OpinionConflictResult result, Long userId) {
+        CardConflict conflict = new CardConflict();
+        conflict.setCardId1(Math.min(result.getCard1().getId(), result.getCard2().getId()));
+        conflict.setCardId2(Math.max(result.getCard1().getId(), result.getCard2().getId()));
+        conflict.setUserId(userId);
+        conflict.setConflictType(result.getConflictType());
+        conflict.setConflictDescription(result.getConflictDescription());
+        conflict.setTopic(result.getTopic());
+        conflict.setConflictScore(result.getConflictScore());
+        conflict.setAiAnalysis(result.getAiAnalysis());
+        conflict.setIsAcknowledged(false);
+        
+        // 计算综合相似度分数
+        BigDecimal similarityScore = textSimilarityService.calculateCosineSimilarity(
+            buildComparisonContent(result.getCard1()),
+            buildComparisonContent(result.getCard2())
+        );
+        conflict.setSimilarityScore(similarityScore);
+        
+        return conflictRepository.save(conflict);
     }
 
     @Override
@@ -103,45 +190,17 @@ public class ConflictDetectionServiceImpl implements ConflictDetectionService {
         return conflictRepository.countByUserIdAndIsAcknowledgedFalse(userId);
     }
 
-    private CardConflict checkConflictWithAI(Card card1, Card card2) {
-        // TODO: 集成AI服务进行深度冲突检测
-        // 目前使用简单的关键词匹配作为占位实现
-        
-        String keywords1 = card1.getKeywords();
-        String keywords2 = card2.getKeywords();
-        
-        if (keywords1 == null || keywords2 == null) {
-            return null;
+    /**
+     * 异步触发冲突检测（在卡片创建后自动执行）
+     */
+    @Async("taskExecutor")
+    public void triggerAsyncConflictDetection(Long cardId) {
+        try {
+            log.info("异步触发冲突检测: cardId={}", cardId);
+            detectConflicts(cardId);
+        } catch (Exception e) {
+            log.error("异步冲突检测失败: cardId={}", cardId, e);
         }
-        
-        // 简单的关键词重叠检测
-        String[] keys1 = keywords1.split(",");
-        String[] keys2 = keywords2.split(",");
-        
-        int overlapCount = 0;
-        for (String k1 : keys1) {
-            for (String k2 : keys2) {
-                if (k1.trim().equalsIgnoreCase(k2.trim())) {
-                    overlapCount++;
-                }
-            }
-        }
-        
-        // 如果有足够的关键词重叠，认为可能存在冲突
-        if (overlapCount >= 2) {
-            CardConflict conflict = new CardConflict();
-            conflict.setCardId1(Math.min(card1.getId(), card2.getId()));
-            conflict.setCardId2(Math.max(card1.getId(), card2.getId()));
-            conflict.setConflictType("TOPIC_OVERLAP");
-            conflict.setConflictDescription("检测到主题重叠，可能存在观点关联或冲突");
-            conflict.setTopic(extractCommonTopic(card1.getTitle(), card2.getTitle()));
-            conflict.setSimilarityScore(BigDecimal.valueOf(0.6));
-            conflict.setConflictScore(BigDecimal.valueOf(0.3));
-            conflict.setAiAnalysis("AI检测到两张卡片在主题上存在关联，建议进一步查看是否有观点冲突。");
-            return conflict;
-        }
-        
-        return null;
     }
 
     private void updateCardConflictFlag(Long cardId, Long userId) {

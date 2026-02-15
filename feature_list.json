@@ -125,13 +125,20 @@
       "✅ CardConflict实体：冲突信息存储",
       "✅ ConflictDetectionService：冲突检测服务",
       "✅ Card.hasConflict字段：冲突标志",
-      "文本相似度计算",
-      "主题聚类分析",
-      "观点立场识别",
-      "冲突检测算法优化",
-      "对比视图展示"
+      "✅ TextSimilarityService：TF-IDF + 余弦相似度计算",
+      "✅ OpinionAnalysisService：DeepSeek AI观点分析",
+      "✅ 冲突检测算法优化：两阶段检测（相似度过滤 + AI分析）",
+      "✅ CardConflictController：冲突API端点",
+      "✅ ConflictResponse DTO：冲突响应数据",
+      "✅ Android CardConflict数据模型",
+      "✅ ConflictRepository & ConflictApi",
+      "✅ Android冲突对比视图UI组件",
+      "✅ Android冲突列表页面",
+      "✅ ConflictViewModel：状态管理",
+      "✅ 数据库迁移脚本V9：冲突检测索引",
+      "✅ 单元测试：TextSimilarityServiceTest"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_009",
