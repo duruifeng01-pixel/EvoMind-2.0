@@ -35,14 +35,15 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    onNavigateToComputingCost: () -> Unit = {}
+    onNavigateToComputingCost: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("我的") },
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "设置"

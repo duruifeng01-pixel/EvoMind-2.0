@@ -43,6 +43,14 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object Help : Screen("help")
 
+    // Privacy Screens
+    object PrivacyPolicy : Screen("privacy_policy")
+    object UserAgreement : Screen("user_agreement")
+    object AigcCompliance : Screen("aigc_compliance")
+    object DataExport : Screen("data_export")
+    object AccountDeletion : Screen("account_deletion")
+    object FirstLaunch : Screen("first_launch")
+
     // Nested Navigation
     object Main : Screen("main")
 }

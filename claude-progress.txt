@@ -759,8 +759,83 @@ Git commit: "feat: feat_073 密码登录与忘记密码功能 - 完善用户认�
 
 Git commit: "feat: feat_076 算力成本统计与透明化展示 - 订阅定价基础"
 
+[2026-02-15] Session: Coding Agent - feat_077 AIGC内容合规系统 - 完成
+✅ 后端:
+- ContentModerationLog 实体：内容审核日志表
+  * 审核状态：PENDING/PROCESSING/APPROVED/REJECTED/NEED_REVIEW/ERROR
+  * 违规类型：政治/色情/暴力/恐怖主义/赌博/诈骗/辱骂/广告/敏感词等
+  * 审核方式：本地敏感词/百度API/人工复核
+  * AI生成内容标识（符合AIGC合规要求）
+- SensitiveWord 实体：敏感词库表
+  * 分类管理：POLITICS/PORNOGRAPHY/VIOLENCE等9大分类
+  * 敏感级别：LOW/MEDIUM/HIGH/CRITICAL四级
+  * 匹配模式：EXACT/CONTAINS/PREFIX/SUFFIX/REGEX/FUZZY
+  * 来源标识：SYSTEM/IMPORTED/MANUAL
+- ContentModerationRepository：审核日志数据访问
+- SensitiveWordRepository：敏感词库数据访问
+- ContentModerationService：内容审核服务接口
+  * moderateContent() - 同步审核
+  * moderateContentAsync() - 异步审核
+  * quickCheck() - 快速敏感词检测
+  * moderateAiGeneratedContent() - AI内容专用审核
+  * manualReview() - 人工复核
+- ContentModerationServiceImpl：审核服务实现
+  * 敏感词DFA算法检测
+  * 百度内容审核API集成（降级策略）
+  * 审核结果缓存（24小时）
+  * 审核日志记录
+- SensitiveWordService：敏感词服务
+  * DFA自动机构建与匹配
+  * 敏感词CRUD管理
+  * 批量导入
+  * 热点词统计
+- BaiduModerationClient：百度内容审核API客户端
+  * 文本内容审核
+  * Token自动刷新
+  * 违规类型映射
+- ContentModerationController：内容审核API控制器
+  * POST /moderation/check - 内容审核
+  * POST /moderation/quick-check - 快速检测
+  * POST /moderation/ai-content - AI内容审核
+  * GET /moderation/history - 审核历史
+  * GET /moderation/statistics - 审核统计
+  * 敏感词管理接口（管理员）
+  * 人工复核接口（管理员）
+- 数据库迁移 V17：内容审核表+敏感词库+系统预设敏感词
+
+✅ Android:
+- AiGeneratedLabel.kt：AI生成内容标注组件
+  * 四种样式：SMALL/MEDIUM/LARGE/INLINE
+  * AiGeneratedDisclaimerCard：免责声明卡片
+  * AiGeneratedContentWrapper：内容包装器
+  * CardAiGeneratedBadge：卡片专用标注
+- ContentRejectedScreen.kt：审核不通过提示页面
+  * 违规类型展示（政治/色情/暴力/诈骗等）
+  * 违规详情卡片
+  * 命中敏感词展示
+  * 内容预览
+  * 修改建议
+  * 申诉入口
+- ModerationModels.kt：数据模型
+  * ContentType/ModerationStatus/ViolationType枚举
+  * ModerationRequest/ModerationResponse
+  * QuickCheckRequest/QuickCheckResponse
+  * HitWordInfo/ModerationStatistics
+- ModerationApi.kt：API接口定义
+- ModerationRepository.kt：仓库层
+- ModerationViewModel.kt：ViewModel层
+
+合规特性:
+- AI生成内容自动标注（符合《生成式人工智能服务管理暂行办法》）
+- 敏感词DFA算法高效检测
+- 百度内容审核API集成
+- 审核日志完整记录（可追溯）
+- 人工复核机制
+- 多级违规类型分类
+
+Git commit: "feat: feat_077 AIGC内容合规系统 - 标注、审核、敏感词过滤"
+
 === 接下来开发 ===
 根据 DEVELOPMENT_ROADMAP.md，Phase 2 商业闭环功能：
-- feat_077: AIGC内容合规系统 - 标注、审核、敏感词过滤
-- feat_078: 隐私政策/用户协议/AIGC说明页面
+- feat_078: 隐私政策/用户协议/AIGC说明页面（已完成）
 - feat_079: 本地语料库CRUD + 自动标签

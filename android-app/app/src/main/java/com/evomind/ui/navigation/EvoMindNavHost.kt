@@ -22,8 +22,10 @@ import com.evomind.ui.screens.login.ForgotPasswordScreen
 import com.evomind.ui.screens.login.ResetPasswordScreen
 import com.evomind.ui.screens.ocr.OcrImportScreen
 import com.evomind.ui.screens.ocr.OcrResultScreen
+import com.evomind.ui.screens.privacy.*
 import com.evomind.ui.screens.profile.ComputingCostScreen
 import com.evomind.ui.screens.profile.ProfileScreen
+import com.evomind.ui.screens.settings.SettingsScreen
 import com.evomind.ui.screens.sources.SourcesScreen
 import com.evomind.ui.screens.welcome.WelcomeScreen
 
@@ -148,13 +150,66 @@ fun EvoMindNavHost(
 
             composable(Screen.Profile.route) {
                 ProfileScreen(
-                    onNavigateToComputingCost = { navController.navigate(Screen.ComputingCost.route) }
+                    onNavigateToComputingCost = { navController.navigate(Screen.ComputingCost.route) },
+                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
                 )
             }
 
             composable(Screen.ComputingCost.route) {
                 ComputingCostScreen(
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            // Settings & Privacy Screens
+            composable(Screen.Settings.route) {
+                SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToPrivacyPolicy = { navController.navigate(Screen.PrivacyPolicy.route) },
+                    onNavigateToUserAgreement = { navController.navigate(Screen.UserAgreement.route) },
+                    onNavigateToAigcCompliance = { navController.navigate(Screen.AigcCompliance.route) },
+                    onNavigateToDataExport = { navController.navigate(Screen.DataExport.route) },
+                    onNavigateToAccountDeletion = { navController.navigate(Screen.AccountDeletion.route) },
+                    onLogout = {
+                        navController.navigate(Screen.Welcome.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+
+            composable(Screen.PrivacyPolicy.route) {
+                PrivacyPolicyScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.UserAgreement.route) {
+                UserAgreementScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.AigcCompliance.route) {
+                AigcComplianceScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.DataExport.route) {
+                DataExportScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.AccountDeletion.route) {
+                AccountDeletionScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onLogout = {
+                        navController.navigate(Screen.Welcome.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
                 )
             }
 

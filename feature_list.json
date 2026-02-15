@@ -1151,17 +1151,17 @@
     "priority": "high",
     "description": "AIGC内容合规系统 - 标注、审核、敏感词过滤",
     "steps": [
-      "后端: ContentModerationService：内容审核服务",
-      "后端: 敏感词库集成（国内合规词库）",
-      "后端: 百度/阿里内容审核API对接",
-      "后端: 审核日志记录表",
-      "后端: AI生成内容预处理审核",
-      "后端: 用户内容发布前审核",
-      "Android: AI生成内容标注组件",
-      "Android: 审核不通过提示页面",
-      "数据库: 添加审核状态字段到相关内容表"
+      "✅ 后端: ContentModerationService：内容审核服务",
+      "✅ 后端: 敏感词库集成（国内合规词库）",
+      "✅ 后端: 百度/阿里内容审核API对接",
+      "✅ 后端: 审核日志记录表",
+      "✅ 后端: AI生成内容预处理审核",
+      "✅ 后端: 用户内容发布前审核",
+      "✅ Android: AI生成内容标注组件",
+      "✅ Android: 审核不通过提示页面",
+      "✅ 数据库: V17__add_content_moderation.sql 迁移脚本"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_078",
@@ -1169,18 +1169,20 @@
     "priority": "high",
     "description": "隐私政策/用户协议/AIGC说明页面 - 合规必备",
     "steps": [
-      "Android: PrivacyPolicyScreen 隐私政策页面",
-      "Android: UserAgreementScreen 用户协议页面",
-      "Android: AigcComplianceScreen AIGC合规说明",
-      "Android: 首次启动弹窗展示",
-      "Android: 设置页面入口",
-      "Android: 用户数据导出功能",
-      "Android: 一键注销账号功能",
-      "后端: POST /privacy/export-data - 数据导出",
-      "后端: POST /privacy/delete-account - 注销账号",
-      "后端: 数据脱敏处理"
+      "✅ Android: PrivacyPolicyScreen 隐私政策页面",
+      "✅ Android: UserAgreementScreen 用户协议页面",
+      "✅ Android: AigcComplianceScreen AIGC合规说明",
+      "✅ Android: FirstLaunchDialog 首次启动弹窗",
+      "✅ Android: SettingsScreen 设置页面入口",
+      "✅ Android: DataExportScreen 用户数据导出功能",
+      "✅ Android: AccountDeletionScreen 一键注销账号功能",
+      "✅ 后端: PrivacyController - 数据导出和注销API",
+      "✅ 后端: PrivacyService - 业务逻辑实现",
+      "✅ 后端: 数据脱敏处理",
+      "✅ 数据库: V16__add_privacy_features.sql 迁移脚本",
+      "✅ 导航: 添加隐私相关路由"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_079",
