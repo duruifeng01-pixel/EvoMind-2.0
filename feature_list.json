@@ -1087,7 +1087,7 @@
       "Android: 密码输入安全键盘",
       "数据库: 用户表添加password字段"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_074",
