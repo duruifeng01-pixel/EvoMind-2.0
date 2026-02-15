@@ -870,3 +870,32 @@ Android端实现:
 - 语料库管理 → 搜索/收藏/导出
 
 Git commit: "feat: feat_079 语料库完整CRUD - 搜索导出分类管理"
+
+[2026-02-15] Session: Coding Agent - feat_015 挑战任务系统 - Android端完整实现
+
+后端已实现(来自之前开发):
+✅ ChallengeTask实体：每日挑战任务定义
+✅ ChallengeTaskService：任务服务接口和实现
+✅ ChallengeTaskController：REST API控制器
+✅ UserTaskProgress实体：用户任务进度追踪
+✅ 任务类型：阅读卡片/添加源/创建笔记/讨论/分享洞察/每日签到
+
+Android端实现:
+✅ ChallengeTaskDto：数据传输对象
+✅ ChallengeApi：Retrofit API接口
+✅ ChallengeRepository：仓库层实现
+✅ ChallengeTask Domain模型
+✅ ChallengeViewModel：状态管理
+✅ ChallengesScreen完整UI：
+  - 今日挑战卡片展示
+  - 进度条显示
+  - 标记完成/提交作品/领取奖励操作
+  - 奖励信息展示
+  - 任务类型小贴士
+  - 空状态/错误状态处理
+
+核心价值: 输入→认知→内化→行动 完整价值闭环
+- 用户通过挑战任务将学习成果转化为行动
+- 完成任务获得积分和体验天数奖励
+
+Git commit: "feat: feat_015 挑战任务系统 - Android端完整实现"
