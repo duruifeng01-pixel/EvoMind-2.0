@@ -1028,5 +1028,24 @@
       "打包签名(APK/AAB)"
     ],
     "passes": false
+  },
+  {
+    "id": "feat_071",
+    "category": "functional",
+    "priority": "high",
+    "description": "内容采集调度系统（7:3信息流核心）",
+    "steps": [
+      "ContentCrawlJob实体：采集任务追踪",
+      "CrawledContent实体：原始采集内容存储",
+      "ContentCrawlService：信息源内容抓取",
+      "ContentSchedulerService：定时调度器",
+      "ContentDeduplicationService：内容去重（SHA-256+相似度）",
+      "ContentDiscoveryService：30%系统推荐内容发现",
+      "ContentProcessingService：采集内容→认知卡片转换",
+      "集成FeedService：70%用户源+30%系统推荐混合",
+      "数据库表：content_crawl_jobs, crawled_contents",
+      "定时任务配置：@Scheduled采集调度"
+    ],
+    "passes": true
   }
 ]

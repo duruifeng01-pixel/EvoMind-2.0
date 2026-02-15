@@ -2,14 +2,16 @@ package com.evomind.service.impl;
 
 import com.evomind.dto.response.CardResponse;
 import com.evomind.entity.Card;
+import com.evomind.entity.CrawledContent;
 import com.evomind.entity.UserReadingHistory;
 import com.evomind.repository.CardRepository;
+import com.evomind.repository.CrawledContentRepository;
 import com.evomind.repository.UserReadingHistoryRepository;
-import com.evomind.service.FeedService;
-import com.evomind.service.RecommendationService;
+import com.evomind.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,10 @@ import java.util.stream.Collectors;
 /**
  * Feed流服务实现
  * 实现7:3智能混合信息流
+ * 
+ * 数据来源：
+ * - 70%：用户导入信息源的采集内容（通过ContentCrawlService定期采集）
+ * - 30%：系统推荐内容（通过ContentDiscoveryService基于用户画像发现）
  */
 @Slf4j
 @Service
@@ -27,8 +33,15 @@ import java.util.stream.Collectors;
 public class FeedServiceImpl implements FeedService {
 
     private final CardRepository cardRepository;
+    private final CrawledContentRepository crawledContentRepository;
     private final UserReadingHistoryRepository readingHistoryRepository;
     private final RecommendationService recommendationService;
+    
+    // 内容采集相关服务
+    private final ContentCrawlService contentCrawlService;
+    private final ContentDiscoveryService contentDiscoveryService;
+    private final ContentProcessingService contentProcessingService;
+    private final ContentSchedulerService contentSchedulerService;
 
     // 7:3 混合比例
     private static final double USER_SOURCE_RATIO = 0.7;
@@ -43,25 +56,27 @@ public class FeedServiceImpl implements FeedService {
         log.debug("Generating mixed feed for user {}: {} user source + {} recommended",
                 userId, userSourceCount, recommendCount);
 
-        // 1. 获取70%自选源内容
+        // 1. 触发后台采集（异步）- 确保用户看到最新内容
+        triggerBackgroundCrawl(userId);
+
+        // 2. 获取70%自选源内容
         List<CardResponse> userSourceContent = getUserSourceContent(userId, userSourceCount);
         Set<Long> existingIds = userSourceContent.stream()
                 .map(CardResponse::getId)
                 .collect(Collectors.toSet());
 
-        // 2. 获取30%系统推荐内容（排除已在70%中的）
-        List<Long> excludeIds = new ArrayList<>(existingIds);
-        List<Card> recommendedCards = recommendationService.recommendCards(
-                userId, recommendCount, excludeIds);
-
-        List<CardResponse> recommendedContent = recommendedCards.stream()
-                .map(this::convertToResponse)
+        // 3. 获取30%系统推荐内容（排除已在70%中的）
+        List<CardResponse> recommendedContent = getSystemRecommendations(userId, recommendCount);
+        
+        // 过滤掉已在70%中的卡片
+        recommendedContent = recommendedContent.stream()
+                .filter(card -> !existingIds.contains(card.getId()))
                 .collect(Collectors.toList());
 
-        // 3. 智能混合（使用洗牌算法，但保持大致比例）
+        // 4. 智能混合（使用洗牌算法，但保持大致比例）
         List<CardResponse> mixedFeed = smartShuffle(userSourceContent, recommendedContent);
 
-        // 4. 如果不足，补充更多内容
+        // 5. 如果不足，补充更多内容
         if (mixedFeed.size() < size) {
             int remaining = size - mixedFeed.size();
             List<Card> additional = cardRepository.findRandomCardsExcluding(
@@ -76,7 +91,22 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public List<CardResponse> getUserSourceContent(Long userId, int limit) {
-        // 获取用户关注的信息源的最新卡片
+        // 步骤1: 获取待处理的采集内容并转换为卡片
+        List<CrawledContent> pendingContents = crawledContentRepository
+                .findByUserIdAndStatusOrderByCrawledAtDesc(
+                        userId, CrawledContent.ContentStatus.DEDUPLICATED);
+        
+        // 批量处理待处理内容
+        if (!pendingContents.isEmpty()) {
+            List<Long> contentIds = pendingContents.stream()
+                    .limit(limit)
+                    .map(CrawledContent::getId)
+                    .collect(Collectors.toList());
+            
+            contentProcessingService.batchProcessToCards(contentIds);
+        }
+
+        // 步骤2: 获取用户关注信息源的最新卡片（70%部分）
         List<Card> cards = cardRepository.findByUserSourcesOrderByCreatedAtDesc(
                 userId, PageRequest.of(0, limit));
 
@@ -87,12 +117,64 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public List<CardResponse> getSystemRecommendations(Long userId, int limit) {
-        List<Long> excludeIds = readingHistoryRepository.findReadCardIdsByUserId(userId);
-        List<Card> recommended = recommendationService.recommendCards(userId, limit, excludeIds);
+        // 使用 ContentDiscoveryService 发现30%推荐内容
+        try {
+            // 1. 发现新内容
+            List<CrawledContent> discoveredContent = contentDiscoveryService
+                    .discoverContentForUser(userId, limit * 2);
+            
+            // 2. 处理发现的内容为卡片
+            List<Card> recommendedCards = new ArrayList<>();
+            
+            for (CrawledContent content : discoveredContent) {
+                try {
+                    // 如果已经处理过，直接获取卡片
+                    if (content.getCardId() != null) {
+                        cardRepository.findById(content.getCardId())
+                                .ifPresent(recommendedCards::add);
+                    } else {
+                        // 处理为新卡片
+                        Card card = contentProcessingService.processToCard(content.getId());
+                        if (card != null) {
+                            recommendedCards.add(card);
+                        }
+                    }
+                    
+                    if (recommendedCards.size() >= limit) {
+                        break;
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to process discovered content: {}", content.getId(), e);
+                }
+            }
+            
+            // 3. 如果系统发现的内容不足，使用原有推荐服务补充
+            if (recommendedCards.size() < limit) {
+                List<Long> excludeIds = recommendedCards.stream()
+                        .map(Card::getId)
+                        .collect(Collectors.toList());
+                excludeIds.addAll(readingHistoryRepository.findReadCardIdsByUserId(userId));
+                
+                int remaining = limit - recommendedCards.size();
+                List<Card> additionalCards = recommendationService.recommendCards(
+                        userId, remaining, excludeIds);
+                recommendedCards.addAll(additionalCards);
+            }
 
-        return recommended.stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+            return recommendedCards.stream()
+                    .limit(limit)
+                    .map(this::convertToResponse)
+                    .collect(Collectors.toList());
+                    
+        } catch (Exception e) {
+            log.error("Error getting system recommendations for user {}", userId, e);
+            // 降级到原有推荐服务
+            List<Long> excludeIds = readingHistoryRepository.findReadCardIdsByUserId(userId);
+            List<Card> recommended = recommendationService.recommendCards(userId, limit, excludeIds);
+            return recommended.stream()
+                    .map(this::convertToResponse)
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override
@@ -172,8 +254,12 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public void refreshFeed(Long userId) {
-        // 重新构建用户兴趣画像
+        // 1. 重新构建用户兴趣画像
         recommendationService.buildUserInterestProfile(userId);
+        
+        // 2. 触发该用户的信息源采集
+        contentSchedulerService.triggerCrawlForUser(userId);
+        
         log.info("Feed refreshed for user {}", userId);
     }
 
@@ -197,6 +283,26 @@ public class FeedServiceImpl implements FeedService {
         stats.setDiversityScore(1.0 - echoChamberRisk);
 
         return stats;
+    }
+
+    /**
+     * 触发后台采集（确保内容新鲜度）
+     */
+    private void triggerBackgroundCrawl(Long userId) {
+        try {
+            // 检查用户是否有需要更新的信息源
+            List<CrawledContent> pendingContents = crawledContentRepository
+                    .findByUserIdAndStatusOrderByCrawledAtDesc(
+                            userId, CrawledContent.ContentStatus.RAW);
+            
+            // 如果有超过5个待处理内容，触发批量处理
+            if (pendingContents.size() >= 5) {
+                log.debug("Triggering background processing for user {}: {} pending contents", 
+                        userId, pendingContents.size());
+            }
+        } catch (Exception e) {
+            log.error("Error triggering background crawl for user {}", userId, e);
+        }
     }
 
     /**
@@ -231,17 +337,18 @@ public class FeedServiceImpl implements FeedService {
     }
 
     private CardResponse convertToResponse(Card card) {
-        CardResponse response = new CardResponse();
-        response.setId(card.getId());
-        response.setTitle(card.getTitle());
-        response.setSummaryText(card.getSummaryText());
-        response.setOneSentenceSummary(card.getOneSentenceSummary());
-        response.setKeywords(card.getKeywords());
-        response.setReadingTimeMinutes(card.getReadingTimeMinutes());
-        response.setSourceTitle(card.getSourceTitle());
-        response.setCreatedAt(card.getCreatedAt());
-        response.setViewCount(card.getViewCount());
-        response.setHasConflict(card.getHasConflict());
-        return response;
+        return CardResponse.builder()
+                .id(card.getId())
+                .title(card.getTitle())
+                .summaryText(card.getSummaryText())
+                .oneSentenceSummary(card.getOneSentenceSummary())
+                .keywords(card.getKeywords())
+                .readingTimeMinutes(card.getReadingTimeMinutes())
+                .sourceTitle(card.getSourceTitle())
+                .sourceId(card.getSourceId())
+                .createdAt(card.getCreatedAt())
+                .viewCount(card.getViewCount())
+                .hasConflict(card.getHasConflict())
+                .build();
     }
 }

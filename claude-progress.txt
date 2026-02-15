@@ -529,5 +529,46 @@ Git commit: "feat: feat_008 Android认知冲突UI完善 - 卡片vs用户认知�
 
 Git commit: "feat: feat_009 7:3智能混合信息流 - 推荐算法与信息茧房避免"
 
+=== Session X 完成工作 ===
+✅ feat_071: 内容采集调度系统（7:3信息流核心基础设施）
+
+核心架构实现 - 7:3智能混合信息流的数据来源：
+- **70%用户自选源内容采集**：
+  - ContentCrawlJob实体：采集任务追踪（SCHEDULED/MANUAL/DISCOVERY类型）
+  - CrawledContent实体：原始采集内容存储（支持去重、质量评分）
+  - ContentCrawlService：信息源内容抓取（复用LinkScrapeService）
+  - ContentSchedulerService：定时调度器（@Scheduled，30分钟间隔）
+  - ContentDeduplicationService：内容去重（SHA-256精确匹配 + 0.85相似度阈值）
+
+- **30%系统推荐内容发现**：
+  - ContentDiscoveryService：基于用户画像发现相关内容
+  - 兴趣标签解析（从UserCognitiveProfile.topic/keywords）
+  - 内容质量评估（长度、标题、多样性、时效性）
+  - 推荐理由生成（个性化解释）
+
+- **采集内容→认知卡片转换**：
+  - ContentProcessingService：自动处理流程
+  - 自动分类（TECHNOLOGY/BUSINESS/HEALTH等）
+  - 关键词提取
+  - 核心观点提取
+  - 重要性评估
+
+- **Feed流集成**：
+  - 更新FeedServiceImpl.getUserSourceContent()：处理待采集内容
+  - 更新FeedServiceImpl.getSystemRecommendations()：使用ContentDiscoveryService
+  - 更新FeedServiceImpl.refreshFeed()：触发信息源采集
+
+数据库迁移：
+- V12__add_content_crawl_tables.sql：content_crawl_jobs, crawled_contents表
+
+技术要点：
+- 定时任务调度：ThreadPoolTaskScheduler，支持启停控制
+- 内容去重：双层去重（哈希精确匹配 + 文本相似度）
+- 用户画像驱动：基于认知画像的兴趣标签匹配
+- 质量评估：多维度评分（内容长度、标题质量、多样性、时效性）
+- 自动转换：采集内容→认知卡片的自动化流水线
+
+Git commit: "feat: feat_071 内容采集调度系统 - 7:3信息流核心基础设施"
+
 === 接下来开发 ===
 feat_010: AI苏格拉底式对话
