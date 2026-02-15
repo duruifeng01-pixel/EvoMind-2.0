@@ -48,19 +48,22 @@ data class CurrentUsageDto(
 
 data class EstimateResultDto(
     @SerializedName("dailyCost")
-    val dailyCost: BigDecimal = BigDecimal.ZERO,
+    val dailyCost: BigDecimal = BigDecimal.ZERO,        // 日算力成本
 
     @SerializedName("monthlyCost")
-    val monthlyCost: BigDecimal = BigDecimal.ZERO,
+    val monthlyCost: BigDecimal = BigDecimal.ZERO,      // 月算力成本
 
     @SerializedName("dailySubscription")
-    val dailySubscription: BigDecimal = BigDecimal.ZERO,
+    val dailySubscription: BigDecimal = BigDecimal.ZERO,    // 日订阅费
 
     @SerializedName("monthlySubscription")
-    val monthlySubscription: BigDecimal = BigDecimal.ZERO,
+    val monthlySubscription: BigDecimal = BigDecimal.ZERO,  // 月订阅费
 
-    @SerializedName("costMultiplier")
-    val costMultiplier: Int = 2
+    @SerializedName("computingCostRatio")
+    val computingCostRatio: Int = 80,   // 算力成本占比80%
+
+    @SerializedName("operationCostRatio")
+    val operationCostRatio: Int = 20    // 运营成本占比20%
 )
 
 data class UnitPriceDto(

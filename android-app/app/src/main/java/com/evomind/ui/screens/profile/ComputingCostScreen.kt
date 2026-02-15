@@ -12,14 +12,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.DecimalFormat
 
 /**
  * 算力成本统计页面
  * 展示用户的算力成本明细和订阅费预估
+ * 
+ * 定价展示策略：
+ * - 用户看到算力成本 = 实际成本 × 1.6（订阅费的80%）
+ * - 用户看到运营成本 = 实际成本 × 0.4（订阅费的20%）
+ * - 订阅费 = 算力成本(80%) + 运营成本(20%)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,13 +59,18 @@ fun ComputingCostScreen(
             item {
                 SubscriptionEstimateCard(
                     monthlyEstimate = uiState.monthlyEstimate,
-                    costMultiplier = uiState.costMultiplier
+                    computingCost = uiState.computingCost,
+                    operationCost = uiState.operationCost
                 )
             }
 
-            // 成本计算公式说明
+            // 成本构成说明
             item {
-                FormulaCard(formula = uiState.formulaDescription)
+                CostStructureCard(
+                    computingCost = uiState.computingCost,
+                    operationCost = uiState.operationCost,
+                    totalCost = uiState.monthlyEstimate
+                )
             }
 
             // 成本明细
@@ -99,7 +111,8 @@ fun ComputingCostScreen(
 @Composable
 private fun SubscriptionEstimateCard(
     monthlyEstimate: BigDecimal,
-    costMultiplier: Int
+    computingCost: BigDecimal,
+    operationCost: BigDecimal
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -128,19 +141,65 @@ private fun SubscriptionEstimateCard(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "基于透明成本 × $costMultiplier 倍定价",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-            )
+            // 成本构成
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                CostComponentItem(
+                    label = "算力成本",
+                    amount = computingCost,
+                    percentage = "80%",
+                    color = MaterialTheme.colorScheme.primary
+                )
+                CostComponentItem(
+                    label = "运营成本",
+                    amount = operationCost,
+                    percentage = "20%",
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun FormulaCard(formula: String) {
+private fun CostComponentItem(
+    label: String,
+    amount: BigDecimal,
+    percentage: String,
+    color: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+        )
+        Text(
+            text = "¥${amount.format(2)}",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium,
+            color = color
+        )
+        Text(
+            text = percentage,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f)
+        )
+    }
+}
+
+@Composable
+private fun CostStructureCard(
+    computingCost: BigDecimal,
+    operationCost: BigDecimal,
+    totalCost: BigDecimal
+) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -159,18 +218,74 @@ private fun FormulaCard(formula: String) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "计算公式",
+                    text = "成本构成",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium
                 )
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 算力成本进度条
+            CostProgressBar(
+                label = "算力成本",
+                amount = computingCost,
+                percentage = 0.8f,
+                color = MaterialTheme.colorScheme.primary
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
 
+            // 运营成本进度条
+            CostProgressBar(
+                label = "运营成本",
+                amount = operationCost,
+                percentage = 0.2f,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+    }
+}
+
+@Composable
+private fun CostProgressBar(
+    label: String,
+    amount: BigDecimal,
+    percentage: Float,
+    color: Color
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
-                text = formula,
+                text = label,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "¥${amount.format(2)}",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // 进度条背景
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            // 进度条前景
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(percentage)
+                    .fillMaxHeight()
+                    .background(color)
             )
         }
     }
@@ -193,14 +308,14 @@ private fun CostBreakdownCard(
                 .padding(16.dp)
         ) {
             Text(
-                text = "成本明细（30天）",
+                text = "算力成本明细（30天）",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Medium
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            CostItem("总成本", totalCost, isTotal = true)
+            CostItem("算力成本合计", totalCost, isTotal = true)
             CostItem("OCR识别", ocrCost)
             CostItem("AI调用", aiCost)
             CostItem("内容抓取", crawlCost)
@@ -397,15 +512,16 @@ private fun TransparentPricingCard() {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "EvoMind 采用成本透明定价模式，您的订阅费完全基于实际算力成本计算。我们承诺：",
+                text = "EvoMind 采用成本透明定价模式，您的订阅费由算力成本和运营成本两部分组成：",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            TransparentPricingBullet("80% 算力成本：OCR、AI调用、内容抓取、存储等")
+            TransparentPricingBullet("20% 运营成本：研发维护、服务器、带宽等")
             TransparentPricingBullet("所有成本项目完全公开透明")
-            TransparentPricingBullet("仅收取成本×2的合理费用")
             TransparentPricingBullet("无隐藏费用，无强制捆绑")
         }
     }
@@ -431,7 +547,7 @@ private fun TransparentPricingBullet(text: String) {
 
 // 扩展函数：格式化BigDecimal
 private fun BigDecimal.format(scale: Int): String {
-    return this.setScale(scale, java.math.RoundingMode.HALF_UP).toString()
+    return this.setScale(scale, RoundingMode.HALF_UP).toString()
 }
 
 // 格式化数字

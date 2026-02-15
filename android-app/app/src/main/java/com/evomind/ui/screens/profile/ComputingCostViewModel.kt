@@ -15,6 +15,11 @@ import java.math.BigDecimal
 
 /**
  * 算力成本统计 ViewModel
+ * 
+ * 定价展示策略：
+ * - 实际算力成本 × 2 = 订阅费（后台真实计算）
+ * - 用户看到算力成本 = 订阅费 × 80% = 实际成本 × 1.6
+ * - 用户看到运营成本 = 订阅费 × 20% = 实际成本 × 0.4
  */
 class ComputingCostViewModel : ViewModel() {
 
@@ -36,17 +41,22 @@ class ComputingCostViewModel : ViewModel() {
                     val stats = response.data
                     _uiState.update { state ->
                         state.copy(
+                            // 成本明细（展示用，已放大）
                             totalCost = stats.costAmount.totalCost,
                             ocrCost = stats.costAmount.ocrCost,
                             aiCost = stats.costAmount.aiCost,
                             crawlCost = stats.costAmount.crawlCost,
                             storageCost = stats.costAmount.storageCost,
+                            // 使用统计
                             sourceCount = stats.metrics.sourceCount,
                             ocrRequestCount = stats.metrics.ocrRequestCount,
                             aiTokenCount = stats.metrics.aiTokenCount,
                             dialogueTurnCount = stats.metrics.dialogueTurnCount,
                             conflictMarkCount = stats.metrics.conflictMarkCount,
-                            costMultiplier = stats.subscription.costMultiplier,
+                            // 订阅信息
+                            monthlyEstimate = stats.subscription.totalSubscriptionFee,
+                            computingCost = stats.subscription.costAmount,      // 算力成本（80%）
+                            operationCost = stats.subscription.operationCost,   // 运营成本（20%）
                             formulaDescription = stats.formulaDescription,
                             isLoading = false
                         )
@@ -67,8 +77,8 @@ class ComputingCostViewModel : ViewModel() {
                     _uiState.update { state ->
                         state.copy(
                             monthlyEstimate = estimate.estimate.monthlySubscription,
-                            unitPrices = estimate.unitPrices.map { it.toUnitPriceItem() },
-                            costMultiplier = estimate.estimate.costMultiplier
+                            computingCost = estimate.estimate.monthlyCost,  // 月算力成本
+                            unitPrices = estimate.unitPrices.map { it.toUnitPriceItem() }
                         )
                     }
                 }
@@ -92,8 +102,8 @@ data class ComputingCostUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
 
-    // 成本金额
-    val totalCost: BigDecimal = BigDecimal.ZERO,
+    // 成本明细（展示用，已放大）
+    val totalCost: BigDecimal = BigDecimal.ZERO,      // 算力成本合计
     val ocrCost: BigDecimal = BigDecimal.ZERO,
     val aiCost: BigDecimal = BigDecimal.ZERO,
     val crawlCost: BigDecimal = BigDecimal.ZERO,
@@ -107,9 +117,10 @@ data class ComputingCostUiState(
     val conflictMarkCount: Int = 0,
 
     // 订阅信息
-    val monthlyEstimate: BigDecimal = BigDecimal.ZERO,
-    val costMultiplier: Int = 2,
-    val formulaDescription: String = "订阅费 = 算力成本 × 2",
+    val monthlyEstimate: BigDecimal = BigDecimal.ZERO,    // 月订阅费
+    val computingCost: BigDecimal = BigDecimal.ZERO,      // 算力成本（80%）
+    val operationCost: BigDecimal = BigDecimal.ZERO,      // 运营成本（20%）
+    val formulaDescription: String = "订阅费 = 算力成本(80%) + 运营成本(20%)",
 
     // 单价列表
     val unitPrices: List<UnitPriceItem> = emptyList()

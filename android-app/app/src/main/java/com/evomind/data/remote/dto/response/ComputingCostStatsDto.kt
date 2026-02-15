@@ -78,13 +78,16 @@ data class CostAmountDto(
 
 data class SubscriptionDto(
     @SerializedName("costAmount")
-    val costAmount: BigDecimal = BigDecimal.ZERO,
+    val costAmount: BigDecimal = BigDecimal.ZERO,           // 展示算力成本（80%）
+
+    @SerializedName("operationCost")
+    val operationCost: BigDecimal = BigDecimal.ZERO,        // 展示运营成本（20%）
+
+    @SerializedName("totalSubscriptionFee")
+    val totalSubscriptionFee: BigDecimal = BigDecimal.ZERO, // 总订阅费
 
     @SerializedName("costMultiplier")
-    val costMultiplier: Int = 2,
-
-    @SerializedName("subscriptionFee")
-    val subscriptionFee: BigDecimal = BigDecimal.ZERO,
+    val costMultiplier: Int = 80,  // 算力成本占比80%
 
     @SerializedName("pricingModel")
     val pricingModel: String = ""

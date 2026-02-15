@@ -60,10 +60,11 @@ public class ComputingCostStatsResponse {
     @Data
     @Builder
     public static class SubscriptionDTO {
-        private BigDecimal costAmount;        // 成本金额
-        private Integer costMultiplier;       // 成本倍数（默认2倍）
-        private BigDecimal subscriptionFee;   // 订阅费用 = 成本 × 倍数
-        private String pricingModel;          // 定价模式说明
+        private BigDecimal costAmount;           // 展示算力成本（80%）
+        private BigDecimal operationCost;        // 展示运营成本（20%）
+        private BigDecimal totalSubscriptionFee; // 总订阅费
+        private Integer costMultiplier;          // 算力成本占比（80）
+        private String pricingModel;             // 定价模式说明
     }
 
     @Data
