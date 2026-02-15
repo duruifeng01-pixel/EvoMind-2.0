@@ -965,3 +965,37 @@ Android端实现:
 - 打卡监督功能
 
 Git commit: "feat: feat_017 小组学习Android端 - DTO/Api/导航"
+
+[2026-02-15] Session: 自动化开发系统 - feat_018 成长数据可视化
+
+需求文档(app_spec.txt):
+<feature>成长数据可视化</feature>
+<description>学习时长、认知卡片数、脑图规模、Agent进化度等数据可视化展示</description>
+<tech>图表库，数据可视化，动画</tech>
+
+Android端实现:
+✅ GrowthStatsApi: 成长数据API接口
+  - getGrowthStats() 获取成长统计
+  - getWeeklyStats() 周统计
+  - getMonthlyStats() 月统计
+  - getAbilityProfile() 能力画像
+  - getEvolutionProgress() 进化进度
+✅ GrowthStatsViewModel: 状态管理
+✅ GrowthStatsScreen: UI展示页面
+  - 学习时长卡片
+  - 认知卡片数量
+  - 知识节点数
+  - 连续学习天数
+  - 能力画像卡片
+  - 进化进度卡片
+✅ Screen.kt: 添加GrowthStats路由
+✅ EvoMindNavHost.kt: 添加导航配置
+
+需求对照:
+- 学习时长统计 ✅
+- 认知卡片数量 ✅
+- 脑图规模展示 ✅
+- Agent进化度 ✅
+- 图表动画效果 ⚠️ UI框架完成
+
+Git commit: "feat: feat_018 成长数据可视化 - Android端完整实现"
