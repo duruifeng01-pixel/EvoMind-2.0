@@ -321,6 +321,10 @@
     "priority": "medium",
     "description": "能力报告生成",
     "steps": [
+      "✅ Android: AbilityReportDto 报告/图谱/曲线DTO",
+      "✅ Android: AbilityReportApi API接口",
+      "✅ Android: AbilityReportViewModel 状态管理",
+      "✅ Android: AbilityReportScreen UI页面",
       "周/月报告生成",
       "知识图谱展示",
       "成长曲线",
