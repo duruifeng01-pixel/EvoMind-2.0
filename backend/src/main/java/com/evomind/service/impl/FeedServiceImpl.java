@@ -3,10 +3,10 @@ package com.evomind.service.impl;
 import com.evomind.dto.response.CardResponse;
 import com.evomind.entity.Card;
 import com.evomind.entity.CrawledContent;
+import com.evomind.entity.UserDailyFeedQuota;
+import com.evomind.entity.UserReadCardRecord;
 import com.evomind.entity.UserReadingHistory;
-import com.evomind.repository.CardRepository;
-import com.evomind.repository.CrawledContentRepository;
-import com.evomind.repository.UserReadingHistoryRepository;
+import com.evomind.repository.*;
 import com.evomind.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,10 +23,15 @@ import java.util.stream.Collectors;
 /**
  * Feed流服务实现
  * 实现7:3智能混合信息流
- * 
+ *
+ * 控制机制：
+ * - 每日配额：300条/天
+ * - 已读防重复：3天冷却期
+ * - 自动归档：7天未读内容自动归档
+ *
  * 数据来源：
- * - 70%：用户导入信息源的采集内容（通过ContentCrawlService定期采集）
- * - 30%：系统推荐内容（通过ContentDiscoveryService基于用户画像发现）
+ * - 70%：用户导入信息源的采集内容
+ * - 30%：系统推荐内容
  */
 @Slf4j
 @Service
@@ -35,8 +41,10 @@ public class FeedServiceImpl implements FeedService {
     private final CardRepository cardRepository;
     private final CrawledContentRepository crawledContentRepository;
     private final UserReadingHistoryRepository readingHistoryRepository;
+    private final UserDailyFeedQuotaRepository quotaRepository;
+    private final UserReadCardRecordRepository readCardRecordRepository;
     private final RecommendationService recommendationService;
-    
+
     // 内容采集相关服务
     private final ContentCrawlService contentCrawlService;
     private final ContentDiscoveryService contentDiscoveryService;
@@ -47,99 +55,122 @@ public class FeedServiceImpl implements FeedService {
     private static final double USER_SOURCE_RATIO = 0.7;
     private static final double SYSTEM_RECOMMEND_RATIO = 0.3;
 
+    // 控制参数
+    private static final int DAILY_LIMIT = 300;          // 每日限额
+    private static final int COOL_DOWN_DAYS = 3;         // 已读内容冷却期（天）
+    private static final int ARCHIVE_AFTER_DAYS = 7;     // 自动归档期限（天）
+
     @Override
     public List<CardResponse> getMixedFeed(Long userId, int page, int size) {
-        // 计算70%和30%的数量
-        int userSourceCount = (int) Math.round(size * USER_SOURCE_RATIO);
-        int recommendCount = size - userSourceCount;
+        // 1. 检查每日配额
+        UserDailyFeedQuota quota = getOrCreateQuota(userId);
+        if (quota.getIsExhausted()) {
+            log.info("User {} has exhausted daily quota ({}/{})",
+                    userId, quota.getConsumedCount(), quota.getDailyLimit());
+            return Collections.emptyList();
+        }
 
-        log.debug("Generating mixed feed for user {}: {} user source + {} recommended",
-                userId, userSourceCount, recommendCount);
+        // 限制请求数量不超过剩余配额
+        int remainingQuota = quota.getRemainingCount();
+        int actualSize = Math.min(size, remainingQuota);
 
-        // 1. 触发后台采集（异步）- 确保用户看到最新内容
+        if (actualSize <= 0) {
+            return Collections.emptyList();
+        }
+
+        // 2. 计算70%和30%的数量
+        int userSourceCount = (int) Math.round(actualSize * USER_SOURCE_RATIO);
+        int recommendCount = actualSize - userSourceCount;
+
+        log.debug("Generating mixed feed for user {}: {} user source + {} recommended (quota: {}/{})",
+                userId, userSourceCount, recommendCount, quota.getConsumedCount(), quota.getDailyLimit());
+
+        // 3. 触发后台采集
         triggerBackgroundCrawl(userId);
 
-        // 2. 获取70%自选源内容
-        List<CardResponse> userSourceContent = getUserSourceContent(userId, userSourceCount);
+        // 4. 获取已读内容（冷却期内不重复推荐）
+        Set<Long> excludedCardIds = getExcludedCardIds(userId);
+
+        // 5. 获取70%自选源内容
+        List<CardResponse> userSourceContent = getUserSourceContent(userId, userSourceCount, excludedCardIds);
         Set<Long> existingIds = userSourceContent.stream()
                 .map(CardResponse::getId)
                 .collect(Collectors.toSet());
+        excludedCardIds.addAll(existingIds);
 
-        // 3. 获取30%系统推荐内容（排除已在70%中的）
-        List<CardResponse> recommendedContent = getSystemRecommendations(userId, recommendCount);
-        
-        // 过滤掉已在70%中的卡片
-        recommendedContent = recommendedContent.stream()
-                .filter(card -> !existingIds.contains(card.getId()))
-                .collect(Collectors.toList());
+        // 6. 获取30%系统推荐内容
+        List<CardResponse> recommendedContent = getSystemRecommendations(userId, recommendCount, excludedCardIds);
 
-        // 4. 智能混合（使用洗牌算法，但保持大致比例）
+        // 7. 智能混合
         List<CardResponse> mixedFeed = smartShuffle(userSourceContent, recommendedContent);
 
-        // 5. 如果不足，补充更多内容
-        if (mixedFeed.size() < size) {
-            int remaining = size - mixedFeed.size();
+        // 8. 如果不足，尝试补充（不违反配额）
+        if (mixedFeed.size() < actualSize && quota.getRemainingCount() > mixedFeed.size()) {
+            int remaining = Math.min(actualSize - mixedFeed.size(), quota.getRemainingCount() - mixedFeed.size());
             List<Card> additional = cardRepository.findRandomCardsExcluding(
-                    existingIds, PageRequest.of(0, remaining));
+                    excludedCardIds, PageRequest.of(0, remaining));
             mixedFeed.addAll(additional.stream()
                     .map(this::convertToResponse)
                     .collect(Collectors.toList()));
         }
 
-        return mixedFeed.stream().limit(size).collect(Collectors.toList());
+        // 9. 消费配额
+        int consumed = mixedFeed.size();
+        if (consumed > 0) {
+            quota.consume(consumed, false); // 混合消费，稍后按实际比例调整
+            quotaRepository.save(quota);
+        }
+
+        return mixedFeed.stream().limit(actualSize).collect(Collectors.toList());
     }
 
     @Override
-    public List<CardResponse> getUserSourceContent(Long userId, int limit) {
-        // 步骤1: 获取待处理的采集内容并转换为卡片
+    public List<CardResponse> getUserSourceContent(Long userId, int limit, Set<Long> excludeIds) {
+        // 步骤1: 处理待采集内容
         List<CrawledContent> pendingContents = crawledContentRepository
                 .findByUserIdAndStatusOrderByCrawledAtDesc(
                         userId, CrawledContent.ContentStatus.DEDUPLICATED);
-        
-        // 批量处理待处理内容
+
         if (!pendingContents.isEmpty()) {
             List<Long> contentIds = pendingContents.stream()
                     .limit(limit)
                     .map(CrawledContent::getId)
                     .collect(Collectors.toList());
-            
             contentProcessingService.batchProcessToCards(contentIds);
         }
 
-        // 步骤2: 获取用户关注信息源的最新卡片（70%部分）
+        // 步骤2: 获取用户关注信息源的最新卡片（排除已读和指定ID）
         List<Card> cards = cardRepository.findByUserSourcesOrderByCreatedAtDesc(
-                userId, PageRequest.of(0, limit));
+                userId, PageRequest.of(0, limit * 2)); // 多获取一些以应对过滤
 
         return cards.stream()
+                .filter(card -> !excludeIds.contains(card.getId()))
+                .limit(limit)
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<CardResponse> getSystemRecommendations(Long userId, int limit) {
-        // 使用 ContentDiscoveryService 发现30%推荐内容
+    public List<CardResponse> getSystemRecommendations(Long userId, int limit, Set<Long> excludeIds) {
         try {
-            // 1. 发现新内容
+            // 使用 ContentDiscoveryService 发现30%推荐内容
             List<CrawledContent> discoveredContent = contentDiscoveryService
                     .discoverContentForUser(userId, limit * 2);
-            
-            // 2. 处理发现的内容为卡片
+
             List<Card> recommendedCards = new ArrayList<>();
-            
+
             for (CrawledContent content : discoveredContent) {
                 try {
-                    // 如果已经处理过，直接获取卡片
-                    if (content.getCardId() != null) {
+                    if (content.getCardId() != null && !excludeIds.contains(content.getCardId())) {
                         cardRepository.findById(content.getCardId())
                                 .ifPresent(recommendedCards::add);
-                    } else {
-                        // 处理为新卡片
+                    } else if (content.getCardId() == null) {
                         Card card = contentProcessingService.processToCard(content.getId());
-                        if (card != null) {
+                        if (card != null && !excludeIds.contains(card.getId())) {
                             recommendedCards.add(card);
                         }
                     }
-                    
+
                     if (recommendedCards.size() >= limit) {
                         break;
                     }
@@ -147,17 +178,16 @@ public class FeedServiceImpl implements FeedService {
                     log.error("Failed to process discovered content: {}", content.getId(), e);
                 }
             }
-            
-            // 3. 如果系统发现的内容不足，使用原有推荐服务补充
+
+            // 如果系统发现的内容不足，使用原有推荐服务补充
             if (recommendedCards.size() < limit) {
-                List<Long> excludeIds = recommendedCards.stream()
-                        .map(Card::getId)
-                        .collect(Collectors.toList());
-                excludeIds.addAll(readingHistoryRepository.findReadCardIdsByUserId(userId));
-                
+                List<Long> additionalExcludeIds = new ArrayList<>(excludeIds);
+                additionalExcludeIds.addAll(recommendedCards.stream()
+                        .map(Card::getId).toList());
+
                 int remaining = limit - recommendedCards.size();
                 List<Card> additionalCards = recommendationService.recommendCards(
-                        userId, remaining, excludeIds);
+                        userId, remaining, additionalExcludeIds);
                 recommendedCards.addAll(additionalCards);
             }
 
@@ -165,21 +195,17 @@ public class FeedServiceImpl implements FeedService {
                     .limit(limit)
                     .map(this::convertToResponse)
                     .collect(Collectors.toList());
-                    
+
         } catch (Exception e) {
             log.error("Error getting system recommendations for user {}", userId, e);
-            // 降级到原有推荐服务
-            List<Long> excludeIds = readingHistoryRepository.findReadCardIdsByUserId(userId);
-            List<Card> recommended = recommendationService.recommendCards(userId, limit, excludeIds);
-            return recommended.stream()
-                    .map(this::convertToResponse)
-                    .collect(Collectors.toList());
+            return Collections.emptyList();
         }
     }
 
     @Override
     @Transactional
     public void trackReadingBehavior(Long userId, Long cardId, int durationSeconds, int readPercentage) {
+        // 记录阅读历史
         Optional<UserReadingHistory> existing = readingHistoryRepository
                 .findByUserIdAndCardId(userId, cardId);
 
@@ -200,6 +226,9 @@ public class FeedServiceImpl implements FeedService {
 
         history.setReadAt(LocalDateTime.now());
         readingHistoryRepository.save(history);
+
+        // 记录已读防重复
+        recordCardRead(userId, cardId);
 
         // 更新用户兴趣画像
         Card card = cardRepository.findById(cardId).orElse(null);
@@ -222,7 +251,6 @@ public class FeedServiceImpl implements FeedService {
             return h;
         });
 
-        // 根据互动类型更新
         switch (interactionType.toUpperCase()) {
             case "FAVORITE":
                 history.setIsFavorite(true);
@@ -239,6 +267,9 @@ public class FeedServiceImpl implements FeedService {
         history.setReadAt(LocalDateTime.now());
         readingHistoryRepository.save(history);
 
+        // 记录已读
+        recordCardRead(userId, cardId);
+
         // 更新兴趣权重
         Card card = cardRepository.findById(cardId).orElse(null);
         if (card != null && card.getKeywords() != null) {
@@ -254,12 +285,8 @@ public class FeedServiceImpl implements FeedService {
 
     @Override
     public void refreshFeed(Long userId) {
-        // 1. 重新构建用户兴趣画像
         recommendationService.buildUserInterestProfile(userId);
-        
-        // 2. 触发该用户的信息源采集
         contentSchedulerService.triggerCrawlForUser(userId);
-        
         log.info("Feed refreshed for user {}", userId);
     }
 
@@ -267,37 +294,97 @@ public class FeedServiceImpl implements FeedService {
     public FeedStats getFeedStats(Long userId) {
         FeedStats stats = new FeedStats();
 
-        // 统计阅读数量
+        // 获取今日配额信息
+        UserDailyFeedQuota quota = getOrCreateQuota(userId);
+        stats.setDailyLimit(quota.getDailyLimit());
+        stats.setConsumedToday(quota.getConsumedCount());
+        stats.setRemainingToday(quota.getRemainingCount());
+        stats.setIsExhausted(quota.getIsExhausted());
+
+        // 其他统计
         long totalRead = readingHistoryRepository.countByUserId(userId);
         stats.setTotalCards(totalRead);
 
-        // 统计收藏数量
         long favorites = readingHistoryRepository.countByUserIdAndIsFavoriteTrue(userId);
         stats.setUserSourceCards(favorites);
 
-        // 计算茧房风险
         double echoChamberRisk = recommendationService.calculateEchoChamberRisk(userId);
         stats.setEchoChamberRisk(echoChamberRisk);
-
-        // 计算多样性得分
         stats.setDiversityScore(1.0 - echoChamberRisk);
 
         return stats;
     }
 
+    // ============ 私有方法 ============
+
     /**
-     * 触发后台采集（确保内容新鲜度）
+     * 获取或创建用户每日配额
+     */
+    private UserDailyFeedQuota getOrCreateQuota(Long userId) {
+        LocalDate today = LocalDate.now();
+        Optional<UserDailyFeedQuota> existing = quotaRepository
+                .findByUserIdAndQuotaDate(userId, today);
+
+        if (existing.isPresent()) {
+            UserDailyFeedQuota quota = existing.get();
+            // 检查是否需要重置（新的一天）
+            if (quota.needsReset()) {
+                quota.reset();
+                quotaRepository.save(quota);
+            }
+            return quota;
+        }
+
+        // 创建新配额
+        UserDailyFeedQuota quota = new UserDailyFeedQuota();
+        quota.setUserId(userId);
+        quota.setQuotaDate(today);
+        quota.setDailyLimit(DAILY_LIMIT);
+        quota.setRemainingCount(DAILY_LIMIT);
+        return quotaRepository.save(quota);
+    }
+
+    /**
+     * 获取需要排除的卡片ID（已读冷却期内）
+     */
+    private Set<Long> getExcludedCardIds(Long userId) {
+        List<Long> coolDownCardIds = readCardRecordRepository
+                .findCardIdsInCoolDownPeriod(userId, LocalDateTime.now());
+        return new HashSet<>(coolDownCardIds);
+    }
+
+    /**
+     * 记录卡片已读
+     */
+    @Transactional
+    private void recordCardRead(Long userId, Long cardId) {
+        Optional<UserReadCardRecord> existing = readCardRecordRepository
+                .findByUserIdAndCardId(userId, cardId);
+
+        if (existing.isPresent()) {
+            UserReadCardRecord record = existing.get();
+            record.recordRead(COOL_DOWN_DAYS);
+            readCardRecordRepository.save(record);
+        } else {
+            UserReadCardRecord record = new UserReadCardRecord();
+            record.setUserId(userId);
+            record.setCardId(cardId);
+            record.setCoolDownUntil(LocalDateTime.now().plusDays(COOL_DOWN_DAYS));
+            readCardRecordRepository.save(record);
+        }
+    }
+
+    /**
+     * 触发后台采集
      */
     private void triggerBackgroundCrawl(Long userId) {
         try {
-            // 检查用户是否有需要更新的信息源
             List<CrawledContent> pendingContents = crawledContentRepository
                     .findByUserIdAndStatusOrderByCrawledAtDesc(
                             userId, CrawledContent.ContentStatus.RAW);
-            
-            // 如果有超过5个待处理内容，触发批量处理
+
             if (pendingContents.size() >= 5) {
-                log.debug("Triggering background processing for user {}: {} pending contents", 
+                log.debug("Triggering background processing for user {}: {} pending contents",
                         userId, pendingContents.size());
             }
         } catch (Exception e) {
@@ -306,7 +393,7 @@ public class FeedServiceImpl implements FeedService {
     }
 
     /**
-     * 智能洗牌：混合两种内容，但保持大致比例
+     * 智能洗牌
      */
     private List<CardResponse> smartShuffle(List<CardResponse> userSource, List<CardResponse> recommended) {
         List<CardResponse> result = new ArrayList<>();
@@ -319,9 +406,7 @@ public class FeedServiceImpl implements FeedService {
         int userIdx = 0, recIdx = 0;
         int total = userSource.size() + recommended.size();
 
-        // 交替插入，优先70%内容
         for (int i = 0; i < total; i++) {
-            // 根据位置决定优先取哪类
             double currentRatio = (double) userIdx / (userIdx + recIdx + 1);
 
             if (currentRatio < USER_SOURCE_RATIO && userIdx < userSourceCopy.size()) {
@@ -350,5 +435,46 @@ public class FeedServiceImpl implements FeedService {
                 .viewCount(card.getViewCount())
                 .hasConflict(card.getHasConflict())
                 .build();
+    }
+
+    // ============ 定时任务 ============
+
+    /**
+     * 每日凌晨清理过期记录
+     */
+    @Scheduled(cron = "0 0 3 * * ?") // 每天凌晨3点
+    @Transactional
+    public void dailyCleanup() {
+        log.info("Running daily feed cleanup task...");
+
+        // 1. 清理已过期的已读记录
+        int deletedRecords = readCardRecordRepository
+                .deleteExpiredRecords(LocalDateTime.now());
+        log.info("Deleted {} expired read records", deletedRecords);
+
+        // 2. 归档7天未读的老内容
+        archiveOldContent();
+
+        log.info("Daily feed cleanup completed");
+    }
+
+    /**
+     * 归档老内容
+     */
+    @Transactional
+    public void archiveOldContent() {
+        LocalDateTime archiveBefore = LocalDateTime.now().minusDays(ARCHIVE_AFTER_DAYS);
+
+        // 查找7天未读且未归档的卡片
+        List<Card> cardsToArchive = cardRepository.findCardsToArchive(archiveBefore);
+
+        for (Card card : cardsToArchive) {
+            card.setIsArchived(true);
+            card.setArchivedAt(LocalDateTime.now());
+            card.setArchiveReason("OLD");
+        }
+
+        cardRepository.saveAll(cardsToArchive);
+        log.info("Archived {} old cards", cardsToArchive.size());
     }
 }

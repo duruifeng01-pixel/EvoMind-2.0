@@ -1047,5 +1047,23 @@
       "定时任务配置：@Scheduled采集调度"
     ],
     "passes": true
+  },
+  {
+    "id": "feat_072",
+    "category": "functional",
+    "priority": "high",
+    "description": "Feed流控制机制（每日限额+防重复+自动归档）",
+    "steps": [
+      "UserDailyFeedQuota实体：每日300条配额追踪",
+      "UserReadCardRecord实体：已读内容3天冷却期",
+      "每日配额检查与消费控制",
+      "已读内容防重复推荐（3天内不重复）",
+      "定时清理过期已读记录（每天凌晨3点）",
+      "7天未读内容自动归档",
+      "FeedStats配额信息扩展",
+      "数据库表：user_daily_feed_quotas, user_read_card_records",
+      "归档字段：cards.is_archived, archived_at, archive_reason"
+    ],
+    "passes": true
   }
 ]

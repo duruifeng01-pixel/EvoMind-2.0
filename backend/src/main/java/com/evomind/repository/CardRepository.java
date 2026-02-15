@@ -91,4 +91,11 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     List<Card> findRandomCardsExcluding(
             @Param("excludeIds") Set<Long> excludeIds,
             Pageable pageable);
+
+    /**
+     * 查找需要归档的卡片（超过指定时间未读且未归档）
+     */
+    @Query("SELECT c FROM Card c WHERE c.isArchived = false AND c.createdAt < :beforeDate " +
+           "AND c.id NOT IN (SELECT h.cardId FROM UserReadingHistory h WHERE h.readAt > :beforeDate)")
+    List<Card> findCardsToArchive(@Param("beforeDate") LocalDateTime beforeDate);
 }

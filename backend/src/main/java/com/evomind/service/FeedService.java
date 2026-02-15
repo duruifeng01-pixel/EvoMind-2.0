@@ -23,17 +23,19 @@ public interface FeedService {
      * 获取自选源内容（70%）
      * @param userId 用户ID
      * @param limit 数量
+     * @param excludeIds 排除的卡片ID
      * @return 自选源卡片列表
      */
-    List<CardResponse> getUserSourceContent(Long userId, int limit);
+    List<CardResponse> getUserSourceContent(Long userId, int limit, java.util.Set<Long> excludeIds);
 
     /**
      * 获取系统推荐内容（30%）
      * @param userId 用户ID
      * @param limit 数量
+     * @param excludeIds 排除的卡片ID
      * @return 系统推荐卡片列表
      */
-    List<CardResponse> getSystemRecommendations(Long userId, int limit);
+    List<CardResponse> getSystemRecommendations(Long userId, int limit, java.util.Set<Long> excludeIds);
 
     /**
      * 记录阅读行为
@@ -74,6 +76,11 @@ public interface FeedService {
         private long recommendedCards;
         private double diversityScore;
         private double echoChamberRisk;
+        // 每日配额信息
+        private int dailyLimit;
+        private int consumedToday;
+        private int remainingToday;
+        private boolean isExhausted;
 
         // Getters and Setters
         public long getTotalCards() { return totalCards; }
@@ -86,5 +93,13 @@ public interface FeedService {
         public void setDiversityScore(double diversityScore) { this.diversityScore = diversityScore; }
         public double getEchoChamberRisk() { return echoChamberRisk; }
         public void setEchoChamberRisk(double echoChamberRisk) { this.echoChamberRisk = echoChamberRisk; }
+        public int getDailyLimit() { return dailyLimit; }
+        public void setDailyLimit(int dailyLimit) { this.dailyLimit = dailyLimit; }
+        public int getConsumedToday() { return consumedToday; }
+        public void setConsumedToday(int consumedToday) { this.consumedToday = consumedToday; }
+        public int getRemainingToday() { return remainingToday; }
+        public void setRemainingToday(int remainingToday) { this.remainingToday = remainingToday; }
+        public boolean isExhausted() { return isExhausted; }
+        public void setExhausted(boolean exhausted) { isExhausted = exhausted; }
     }
 }
