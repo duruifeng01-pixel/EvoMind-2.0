@@ -1,5 +1,6 @@
 package com.evomind.controller;
 
+import com.evomind.dto.request.CreateCorpusRequest;
 import com.evomind.dto.response.ApiResponse;
 import com.evomind.dto.response.UserCorpusDetailResponse;
 import com.evomind.dto.response.UserCorpusResponse;
@@ -42,6 +43,51 @@ import java.util.stream.Collectors;
 public class UserCorpusController {
 
     private final UserCorpusService userCorpusService;
+
+    @Operation(summary = "创建语料", description = "创建新的语料记录")
+    @PostMapping
+    public ApiResponse<UserCorpusResponse> createCorpus(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody CreateCorpusRequest request) {
+        
+        Long userId = userDetails.getId();
+        UserCorpus corpus = userCorpusService.createCorpus(
+            userId,
+            request.getTitle(),
+            request.getContentText(),
+            request.getCorpusTypeEnum()
+        );
+        
+        if (request.getSummaryText() != null) {
+            corpus.setSummaryText(request.getSummaryText());
+        }
+        if (request.getOneSentenceSummary() != null) {
+            corpus.setOneSentenceSummary(request.getOneSentenceSummary());
+        }
+        if (request.getSourceTypeEnum() != null) {
+            corpus.setSourceType(request.getSourceTypeEnum());
+        }
+        if (request.getSourceId() != null) {
+            corpus.setSourceId(request.getSourceId());
+        }
+        if (request.getSourceRef() != null) {
+            corpus.setSourceRef(request.getSourceRef());
+        }
+        if (request.getDiscussionId() != null) {
+            corpus.setDiscussionId(request.getDiscussionId());
+        }
+        if (request.getKeywords() != null) {
+            corpus.setKeywords(request.getKeywords());
+        }
+        if (request.getReadingTimeMinutes() != null) {
+            corpus.setReadingTimeMinutes(request.getReadingTimeMinutes());
+        }
+        if (request.getRelatedCardId() != null) {
+            corpus.setRelatedCardId(request.getRelatedCardId());
+        }
+        
+        return ApiResponse.success(UserCorpusResponse.fromEntity(corpus));
+    }
 
     @Operation(summary = "获取用户语料库列表", description = "获取当前登录用户的语料库列表（默认排除归档内容）")
     @GetMapping
