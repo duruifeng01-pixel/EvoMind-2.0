@@ -286,6 +286,9 @@
     "priority": "medium",
     "description": "小组学习功能",
     "steps": [
+      "✅ Android: StudyGroupDto 小组/成员/帖子/讨论DTO",
+      "✅ Android: StudyGroupApi Retrofit接口",
+      "✅ Android: Screen导航路由",
       "创建学习小组",
       "加入小组",
       "小组讨论",
