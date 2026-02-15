@@ -264,7 +264,9 @@ fun EvoMindNavHost(
             }
 
             composable(Screen.AbilityReport.route) {
-                // TODO: AbilityReportScreen
+                AbilityReportScreen(
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             composable(Screen.Subscription.route) {
