@@ -37,4 +37,58 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     long countByUserId(Long userId);
 
     long countByUserIdAndIsFavoriteTrue(Long userId);
+
+    // ===== Feed流相关查询 =====
+
+    /**
+     * 根据关键词查找卡片（用于推荐）
+     */
+    @Query("SELECT c FROM Card c WHERE c.keywords LIKE %:keyword% AND c.id NOT IN :excludeIds")
+    List<Card> findByKeywordsContainingAndIdNotIn(
+            @Param("keyword") String keyword,
+            @Param("excludeIds") List<Long> excludeIds,
+            Pageable pageable);
+
+    /**
+     * 获取用户关注信息源的最新卡片（70%自选源内容）
+     */
+    @Query("SELECT c FROM Card c WHERE c.sourceId IN " +
+           "(SELECT s.id FROM Source s WHERE s.userId = :userId AND s.isEnabled = true) " +
+           "ORDER BY c.createdAt DESC")
+    List<Card> findByUserSourcesOrderByCreatedAtDesc(
+            @Param("userId") Long userId,
+            Pageable pageable);
+
+    /**
+     * 排除指定ID后按创建时间排序
+     */
+    @Query("SELECT c FROM Card c WHERE c.id NOT IN :excludeIds ORDER BY c.createdAt DESC")
+    List<Card> findByIdNotInOrderByCreatedAtDesc(
+            @Param("excludeIds") List<Long> excludeIds,
+            Pageable pageable);
+
+    /**
+     * 排除指定类别后随机获取卡片（多样性推荐）
+     */
+    @Query(value = "SELECT * FROM cards WHERE category NOT IN :categories ORDER BY RAND()",
+           nativeQuery = true)
+    List<Card> findByCategoryNotIn(
+            @Param("categories") Set<String> categories,
+            Pageable pageable);
+
+    /**
+     * 随机获取指定数量的卡片
+     */
+    @Query(value = "SELECT * FROM cards ORDER BY RAND() LIMIT :limit",
+           nativeQuery = true)
+    List<Card> findRandomCards(@Param("limit") int limit);
+
+    /**
+     * 排除指定ID后随机获取卡片
+     */
+    @Query(value = "SELECT * FROM cards WHERE id NOT IN :excludeIds ORDER BY RAND() LIMIT :limit",
+           nativeQuery = true)
+    List<Card> findRandomCardsExcluding(
+            @Param("excludeIds") Set<Long> excludeIds,
+            Pageable pageable);
 }

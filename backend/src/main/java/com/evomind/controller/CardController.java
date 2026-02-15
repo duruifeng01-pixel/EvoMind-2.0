@@ -37,8 +37,9 @@ public class CardController {
     private final MindMapService mindMapService;
     private final SourceContentService sourceContentService;
     private final ConflictDetectionService conflictDetectionService;
+    private final FeedService feedService;
 
-    @Operation(summary = "获取卡片Feed流", description = "7:3混合流获取认知卡片")
+    @Operation(summary = "获取卡片Feed流", description = "7:3智能混合流获取认知卡片（70%自选源 + 30%系统推荐）")
     @GetMapping("/feed")
     public ApiResponse<List<CardResponse>> getFeed(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -46,14 +47,50 @@ public class CardController {
             @RequestParam(defaultValue = "20") int size) {
         
         Long userId = userDetails.getId();
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Card> cards = cardService.getCardsByUserId(userId, pageable);
+        List<CardResponse> feed = feedService.getMixedFeed(userId, page, size);
         
-        List<CardResponse> responses = cards.getContent().stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        return ApiResponse.success("获取成功", feed);
+    }
+
+    @Operation(summary = "获取Feed流统计信息", description = "获取用户Feed流的阅读统计和茧房风险")
+    @GetMapping("/feed/stats")
+    public ApiResponse<FeedService.FeedStats> getFeedStats(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
         
-        return ApiResponse.success("获取成功", responses);
+        FeedService.FeedStats stats = feedService.getFeedStats(userDetails.getId());
+        return ApiResponse.success("获取成功", stats);
+    }
+
+    @Operation(summary = "刷新Feed流", description = "重新构建用户画像并刷新推荐")
+    @PostMapping("/feed/refresh")
+    public ApiResponse<Void> refreshFeed(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        
+        feedService.refreshFeed(userDetails.getId());
+        return ApiResponse.success("刷新成功", null);
+    }
+
+    @Operation(summary = "记录阅读行为", description = "记录用户阅读时长和完成度")
+    @PostMapping("/{id}/track")
+    public ApiResponse<Void> trackReading(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id,
+            @RequestParam int durationSeconds,
+            @RequestParam int readPercentage) {
+        
+        feedService.trackReadingBehavior(userDetails.getId(), id, durationSeconds, readPercentage);
+        return ApiResponse.success("记录成功", null);
+    }
+
+    @Operation(summary = "记录互动行为", description = "记录用户收藏、分享等互动行为")
+    @PostMapping("/{id}/interact")
+    public ApiResponse<Void> trackInteraction(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id,
+            @RequestParam String type) {
+        
+        feedService.trackInteraction(userDetails.getId(), id, type);
+        return ApiResponse.success("记录成功", null);
     }
 
     @Operation(summary = "获取卡片详情")

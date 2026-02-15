@@ -486,5 +486,48 @@ Android端实现补充:
 
 Git commit: "feat: feat_008 Android认知冲突UI完善 - 卡片vs用户认知体系视图"
 
+[2026-02-15] Session 11: Coding Agent - feat_009 7:3智能混合信息流
+
+后端实现:
+✅ 创建UserInterestProfile实体：用户兴趣画像（兴趣标签、权重、分类、互动得分）
+✅ 创建UserReadingHistory实体：阅读行为记录（阅读时长、完成度、互动类型）
+✅ 创建UserInterestProfileRepository：兴趣画像数据访问层
+✅ 创建UserReadingHistoryRepository：阅读历史数据访问层
+✅ 创建RecommendationService接口：内容推荐服务
+✅ 实现RecommendationServiceImpl：
+   - recommendCards()：基于兴趣标签的内容推荐
+   - buildUserInterestProfile()：从阅读历史构建画像
+   - updateInterestWeight()：更新兴趣权重（基于阅读行为）
+   - calculateEchoChamberRisk()：计算信息茧房风险（熵值法）
+   - getDiverseRecommendations()：多样性推荐（信息茧房避免）
+✅ 创建FeedService接口：7:3混合流服务
+✅ 实现FeedServiceImpl：
+   - getMixedFeed()：7:3智能混合（70%自选源 + 30%系统推荐）
+   - smartShuffle()：智能洗牌算法保持比例
+   - trackReadingBehavior()：阅读行为追踪
+   - trackInteraction()：互动行为追踪
+   - getFeedStats()：Feed流统计（茧房风险分数）
+✅ 更新CardController Feed API：
+   - GET /cards/feed - 7:3混合Feed流
+   - GET /cards/feed/stats - Feed统计信息
+   - POST /cards/feed/refresh - 刷新Feed
+   - POST /cards/{id}/track - 记录阅读行为
+   - POST /cards/{id}/interact - 记录互动行为
+✅ 扩展CardRepository：Feed流相关查询方法
+✅ 创建V11__add_feed_recommendation_tables.sql数据库迁移
+
+技术要点:
+- 7:3混合比例：70%用户自选信息源内容 + 30%系统智能推荐
+- 兴趣画像构建：基于关键词频率和互动行为计算权重
+- 推荐算法：关键词匹配 + 权重排序 + 多样性补充
+- 信息茧房避免：
+   * 计算兴趣分布熵值评估多样性
+   * 当风险高时引入未探索类别的内容
+   * 随机推荐作为补充
+- 智能洗牌：交替插入保持比例的同时增加随机性
+- 行为追踪：阅读时长、完成度、收藏、分享等影响推荐权重
+
+Git commit: "feat: feat_009 7:3智能混合信息流 - 推荐算法与信息茧房避免"
+
 === 接下来开发 ===
-feat_009: 7:3智能混合信息流
+feat_010: AI苏格拉底式对话

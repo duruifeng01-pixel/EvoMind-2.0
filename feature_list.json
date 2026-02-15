@@ -148,14 +148,22 @@
     "priority": "high",
     "description": "7:3智能混合信息流",
     "steps": [
-      "✅ CardController Feed API：/cards/feed 7:3混合流",
-      "用户画像构建",
-      "内容推荐算法",
-      "70%自选源内容",
-      "30%系统推荐内容",
-      "信息茧房避免策略"
+      "✅ UserInterestProfile实体：用户兴趣画像",
+      "✅ UserReadingHistory实体：阅读行为记录",
+      "✅ RecommendationService：内容推荐服务",
+      "✅ FeedService：7:3混合流服务实现",
+      "✅ 70%自选源内容：用户关注信息源的卡片",
+      "✅ 30%系统推荐内容：基于兴趣画像的智能推荐",
+      "✅ 信息茧房避免策略：多样性推荐 + 熵值计算",
+      "✅ 兴趣画像构建：基于阅读历史的标签权重计算",
+      "✅ 智能洗牌算法：保持比例的同时随机混合",
+      "✅ CardController Feed API：/cards/feed",
+      "✅ 阅读行为追踪API：/cards/{id}/track",
+      "✅ 互动行为追踪API：/cards/{id}/interact",
+      "✅ Feed统计API：/cards/feed/stats（茧房风险）",
+      "✅ 数据库迁移V11：用户兴趣和阅读历史表"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "id": "feat_010",
