@@ -7,6 +7,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,25 +19,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.evomind.domain.model.CardConflict
+import com.evomind.domain.model.CognitiveConflict
 import com.evomind.domain.model.ConflictSeverity
 import com.evomind.domain.model.ConflictType
 
 /**
- * 冲突对比页面
- * 展示两张卡片的观点冲突对比
+ * 认知冲突对比页面
+ * 展示新卡片观点与用户认知体系的对比
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConflictComparisonScreen(
-    conflict: CardConflict,
+fun CognitiveConflictComparisonScreen(
+    conflict: CognitiveConflict,
     onBackClick: () -> Unit,
-    onAcknowledgeClick: () -> Unit
+    onAcknowledgeClick: () -> Unit,
+    onDismissClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("观点冲突对比") },
+                title = { Text("观点冲突详情") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -42,15 +46,16 @@ fun ConflictComparisonScreen(
                             contentDescription = "返回"
                         )
                     }
-                },
-                actions = {
-                    if (!conflict.isAcknowledged) {
-                        TextButton(onClick = onAcknowledgeClick) {
-                            Text("确认")
-                        }
-                    }
                 }
             )
+        },
+        bottomBar = {
+            if (!conflict.isAcknowledged && !conflict.isDismissed) {
+                BottomActionBar(
+                    onAcknowledgeClick = onAcknowledgeClick,
+                    onDismissClick = onDismissClick
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -62,17 +67,64 @@ fun ConflictComparisonScreen(
             // 冲突信息头部
             ConflictHeader(conflict)
 
-            // 冲突对比卡片
-            ComparisonSection(conflict)
+            // 观点对比区域
+            ViewpointComparisonSection(conflict)
 
-            // AI分析
+            // 冲突分析
+            ConflictAnalysisSection(conflict)
+
+            // AI 深度分析
             AiAnalysisSection(conflict.aiAnalysis)
         }
     }
 }
 
 @Composable
-private fun ConflictHeader(conflict: CardConflict) {
+private fun BottomActionBar(
+    onAcknowledgeClick: () -> Unit,
+    onDismissClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onDismissClick,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("忽略")
+            }
+
+            Button(
+                onClick = onAcknowledgeClick,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("已阅，标记冲突")
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConflictHeader(conflict: CognitiveConflict) {
     val severity = conflict.getSeverity()
     val severityColor = when (severity) {
         ConflictSeverity.HIGH -> MaterialTheme.colorScheme.error
@@ -93,7 +145,7 @@ private fun ConflictHeader(conflict: CardConflict) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Default.Warning,
+                imageVector = Icons.Default.Psychology,
                 contentDescription = null,
                 tint = severityColor,
                 modifier = Modifier.size(48.dp)
@@ -113,54 +165,37 @@ private fun ConflictHeader(conflict: CardConflict) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            // 冲突分数
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = severityColor.copy(alpha = 0.2f)
             ) {
-                ScoreChip(
-                    label = "相似度",
-                    score = conflict.similarityScore.toFloat(),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                ScoreChip(
-                    label = "冲突度",
-                    score = conflict.conflictScore.toFloat(),
-                    color = severityColor
-                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "冲突强度",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = severityColor
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "${(conflict.conflictScore.toFloat() * 100).toInt()}%",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = severityColor
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ScoreChip(label: String, score: Float, color: androidx.compose.ui.graphics.Color) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = color.copy(alpha = 0.2f)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = color
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "${(score * 100).toInt()}%",
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-        }
-    }
-}
-
-@Composable
-private fun ComparisonSection(conflict: CardConflict) {
+private fun ViewpointComparisonSection(conflict: CognitiveConflict) {
     Column(
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
@@ -171,99 +206,199 @@ private fun ComparisonSection(conflict: CardConflict) {
             modifier = Modifier.padding(bottom = 12.dp)
         )
 
-        // 卡片1观点
-        ViewpointCard(
-            title = conflict.cardTitle1,
-            viewpoint = conflict.cardViewpoint1,
-            isLeft = true
-        )
+        // 用户观点卡片
+        UserBeliefCard(userBelief = conflict.userBelief)
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // 冲突指示器
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.errorContainer
-            ) {
-                Text(
-                    text = "VS",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-        }
+        ConflictIndicator(conflictType = conflict.conflictType)
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // 卡片2观点
-        ViewpointCard(
-            title = conflict.cardTitle2,
-            viewpoint = conflict.cardViewpoint2,
-            isLeft = false
+        // 新卡片观点
+        NewCardViewpointCard(
+            cardTitle = conflict.cardTitle,
+            cardViewpoint = conflict.cardViewpoint
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
 
-        // 冲突描述
-        if (conflict.conflictDescription.isNotBlank()) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant
+@Composable
+private fun UserBeliefCard(userBelief: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "冲突描述",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = conflict.conflictDescription,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.Psychology,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "您的认知观点",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = userBelief,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f)
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "基于您语料库中的历史观点",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConflictIndicator(conflictType: ConflictType) {
+    val (icon, text, color) = when (conflictType) {
+        ConflictType.CONTRADICTORY -> Triple(
+            Icons.Default.Warning,
+            "观点对立",
+            MaterialTheme.colorScheme.error
+        )
+        ConflictType.CHALLENGING -> Triple(
+            Icons.Default.Warning,
+            "挑战您的信念",
+            MaterialTheme.colorScheme.tertiary
+        )
+        ConflictType.DIFFERENT_PERSPECTIVE -> Triple(
+            Icons.Default.Psychology,
+            "不同视角",
+            MaterialTheme.colorScheme.primary
+        )
+        else -> Triple(
+            Icons.Default.Psychology,
+            "观点差异",
+            MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = color.copy(alpha = 0.15f)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = color
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ViewpointCard(title: String, viewpoint: String, isLeft: Boolean) {
+private fun NewCardViewpointCard(cardTitle: String, cardViewpoint: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (isLeft)
-                MaterialTheme.colorScheme.primaryContainer
-            else
-                MaterialTheme.colorScheme.secondaryContainer
+            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "新内容的观点",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Text(
-                text = title,
+                text = "📄 $cardTitle",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (isLeft)
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                else
-                    MaterialTheme.colorScheme.onSecondaryContainer
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
-                text = viewpoint.ifBlank { "暂无核心观点摘要" },
+                text = cardViewpoint,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (isLeft)
-                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                else
-                    MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.9f)
             )
+        }
+    }
+}
+
+@Composable
+private fun ConflictAnalysisSection(conflict: CognitiveConflict) {
+    if (conflict.conflictDescription.isBlank()) return
+
+    Column(
+        modifier = Modifier.padding(16.dp)
+    ) {
+        Text(
+            text = "冲突分析",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = conflict.conflictDescription,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }
@@ -276,7 +411,7 @@ private fun AiAnalysisSection(analysis: String) {
         modifier = Modifier.padding(16.dp)
     ) {
         Text(
-            text = "AI 分析",
+            text = "AI 深度分析",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 12.dp)
@@ -292,6 +427,32 @@ private fun AiAnalysisSection(analysis: String) {
                     text = analysis,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 思考引导
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "🤔 值得思考的问题",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "• 为什么我的观点与新内容不同？数据来源有何差异？\n" +
+                           "• 这个新视角是否有我未曾考虑过的角度？\n" +
+                           "• 我是否需要在认知笔记中记录这个冲突以便后续思考？",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )
             }
         }

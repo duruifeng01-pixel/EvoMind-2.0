@@ -380,3 +380,111 @@ Git commit: "feat: feat_008 观点冲突标记系统 - 完整实现"
 - 用户数据本地存储，保护隐私
 - 透明算力成本模型
 - 离线优先架构设计
+
+---
+
+[2026-02-15] Session 10: Coding Agent - feat_008 观点冲突标记系统（修正实现）
+
+重要修正:
+原理解错误："观点冲突"是指新认知卡片与用户语料库/已有知识体系的观点不符时提醒用户
+正确理解：检测新卡片是否与用户的认知画像存在冲突
+
+后端实现（修正后）:
+✅ 创建UserCognitiveProfile实体：用户认知画像（主题、核心信念、置信度、证据数）
+✅ 创建UserCognitiveProfileRepository：画像数据访问层
+✅ 创建CognitiveProfileService：从语料库构建认知画像
+✅ 实现CognitiveProfileServiceImpl：
+   - 按主题聚类用户卡片
+   - 使用AI分析生成核心信念
+   - 信念类型分级：STRONG/MODERATE/EXPLORING/TENTATIVE
+   - DeepSeek API集成进行冲突检测
+✅ 创建CognitiveConflict实体：记录新卡片与认知画像的冲突
+✅ 创建CognitiveConflictRepository：冲突数据访问层
+✅ 创建CognitiveConflictService：冲突检测与管理
+✅ 实现CognitiveConflictServiceImpl：
+   - 检测冲突并保存
+   - 支持确认/忽略操作
+   - 自动检测触发（卡片保存后异步执行）
+✅ 创建CognitiveConflictResponse DTO
+✅ 创建CognitiveConflictController API控制器：
+   - POST /cognitive-conflicts/detect/{cardId}
+   - GET /cognitive-conflicts/unresolved
+   - POST /cognitive-conflicts/{id}/acknowledge
+   - POST /cognitive-conflicts/{id}/dismiss
+   - GET /cognitive-conflicts/profiles
+   - POST /cognitive-conflicts/profiles/rebuild
+
+Android端实现（修正后）:
+✅ 创建CognitiveConflict数据模型：Domain层实体
+✅ 创建UserCognitiveProfile数据模型
+✅ 创建ConflictType/BeliefType/ConflictSeverity枚举
+
+数据库:
+✅ 创建V10__add_cognitive_profile_and_conflict.sql迁移脚本：
+   - user_cognitive_profiles表
+   - cognitive_conflicts表
+
+技术要点（修正后）:
+- 用户认知画像：从语料库提取主题和核心信念
+- 冲突检测：新卡片 vs 用户已有认知体系（而非卡片vs卡片）
+- 冲突类型：CONTRADICTORY(观点对立)、CHALLENGING(挑战信念)、DIFFERENT_PERSPECTIVE(不同视角)
+- 信念置信度：基于支持卡片数量计算
+- 支持模拟模式（无需真实DeepSeek API密钥）
+
+Git commit: "feat: feat_008 观点冲突标记系统 - 修正实现（卡片vs用户认知体系）"
+
+[2026-02-15] Session 10+：Android端认知冲突UI完善
+
+Android端实现补充:
+✅ 创建CognitiveConflictApi接口：认知冲突API调用
+   - POST /cognitive-conflicts/detect/{cardId}
+   - GET /cognitive-conflicts/unresolved
+   - POST /cognitive-conflicts/{id}/acknowledge/dismiss
+   
+✅ 创建CognitiveConflictResponseDto：数据转换对象
+   - 包含冲突详情、用户信念、卡片观点等字段
+   
+✅ 创建CognitiveConflictRepository接口和实现
+   - 支持冲突检测、列表获取、确认/忽略操作
+   
+✅ 创建CognitiveConflictUseCase层
+   - GetUnresolvedConflictsUseCase
+   - AcknowledgeCognitiveConflictUseCase
+   - DismissCognitiveConflictUseCase
+   - GetUnresolvedConflictCountUseCase
+   
+✅ 更新ConflictListScreen为CognitiveConflictListScreen
+   - 改为展示"新卡片 vs 用户认知观点"对比
+   - 添加信息引导Banner说明冲突含义
+   - 展示用户观点vs新内容观点的并排对比
+   
+✅ 更新ConflictComparisonScreen为CognitiveConflictComparisonScreen
+   - 改为展示"您的认知观点"和"新内容观点"对比
+   - 添加用户信念卡片（蓝色主题）
+   - 添加新内容观点卡片（警示色）
+   - 添加冲突指示器（观点对立/挑战信念/不同视角）
+   - 添加底部操作栏（已阅/忽略）
+   - 添加AI深度分析和思考引导
+   
+✅ 更新CognitiveConflictViewModel
+   - 使用新的UseCase层
+   - 支持加载未解决冲突
+   - 支持确认和忽略操作
+   - 支持未解决冲突计数（用于Badge）
+   
+✅ 创建Result密封类
+   - Success/Error/Loading状态
+   
+✅ 更新ConflictType枚举
+   - 添加CHALLENGING（挑战信念）类型
+
+技术要点:
+- UI设计：清晰区分"您的观点"和"新内容观点"
+- 视觉层次：使用不同颜色区分用户观点（主色）和新观点（警示色）
+- 交互设计：支持确认已阅和忽略两种操作
+- 思考引导：AI分析后提供思考性问题引导用户深度思考
+
+Git commit: "feat: feat_008 Android认知冲突UI完善 - 卡片vs用户认知体系视图"
+
+=== 接下来开发 ===
+feat_009: 7:3智能混合信息流

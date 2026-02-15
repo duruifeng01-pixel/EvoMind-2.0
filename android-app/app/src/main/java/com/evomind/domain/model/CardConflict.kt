@@ -49,6 +49,7 @@ data class CardConflict(
 enum class ConflictType(val value: String, val description: String) {
     CONTRADICTORY("CONTRADICTORY", "观点对立"),
     COMPLEMENTARY("COMPLEMENTARY", "观点互补"),
+    CHALLENGING("CHALLENGING", "挑战信念"),
     DIFFERENT_PERSPECTIVE("DIFFERENT_PERSPECTIVE", "不同视角"),
     TOPIC_OVERLAP("TOPIC_OVERLAP", "主题重叠"),
     UNKNOWN("UNKNOWN", "未知类型");
