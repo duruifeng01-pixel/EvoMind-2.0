@@ -104,6 +104,14 @@ public interface SocraticDialogueService {
     DialogueStats getDialogueStats(Long userId);
 
     /**
+     * 将对话洞察保存为认知卡片
+     * @param userId 用户ID
+     * @param dialogueId 对话ID
+     * @return 创建的卡片ID
+     */
+    Long saveInsightAsCard(Long userId, Long dialogueId);
+
+    /**
      * 对话统计
      */
     class DialogueStats {

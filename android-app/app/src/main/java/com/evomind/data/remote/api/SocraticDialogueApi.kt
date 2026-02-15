@@ -63,6 +63,11 @@ interface SocraticDialogueApi {
 
     @GET("api/socratic/stats")
     suspend fun getDialogueStats(): Response<ApiResponse<DialogueStatsDto>>
+
+    @POST("api/socratic/dialogues/{id}/save-as-card")
+    suspend fun saveInsightAsCard(
+        @Path("id") dialogueId: Long
+    ): Response<ApiResponse<Long>>
 }
 
 /**

@@ -5,16 +5,20 @@ import com.evomind.dto.request.StartSocraticRequest;
 import com.evomind.dto.response.SocraticDialogueResponse;
 import com.evomind.dto.response.SocraticInsightResponse;
 import com.evomind.dto.response.SocraticMessageResponse;
+import com.evomind.entity.Card;
 import com.evomind.entity.Discussion;
 import com.evomind.entity.SocraticDialogue;
 import com.evomind.entity.SocraticMessage;
+import com.evomind.entity.UserCorpus;
 import com.evomind.exception.BusinessException;
 import com.evomind.exception.ResourceNotFoundException;
 import com.evomind.repository.DiscussionRepository;
 import com.evomind.repository.SocraticDialogueRepository;
 import com.evomind.repository.SocraticMessageRepository;
 import com.evomind.service.AiGenerationService;
+import com.evomind.service.CardService;
 import com.evomind.service.SocraticDialogueService;
+import com.evomind.service.UserCorpusService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +45,8 @@ public class SocraticDialogueServiceImpl implements SocraticDialogueService {
     private final SocraticMessageRepository messageRepository;
     private final DiscussionRepository discussionRepository;
     private final AiGenerationService aiGenerationService;
+    private final CardService cardService;
+    private final UserCorpusService userCorpusService;
     private final ObjectMapper objectMapper;
 
     private static final int MAX_ROUNDS_DEFAULT = 5;
@@ -728,6 +734,63 @@ public class SocraticDialogueServiceImpl implements SocraticDialogueService {
         }
 
         return response;
+    }
+
+    @Override
+    @Transactional
+    public Long saveInsightAsCard(Long userId, Long dialogueId) {
+        log.info("用户 {} 将对话 {} 的洞察保存到语料库", userId, dialogueId);
+
+        SocraticDialogue dialogue = dialogueRepository.findById(dialogueId)
+                .orElseThrow(() -> new ResourceNotFoundException("对话不存在"));
+
+        if (!dialogue.getUserId().equals(userId)) {
+            throw new BusinessException("无权访问此对话");
+        }
+
+        // 获取讨论信息
+        Discussion discussion = discussionRepository.findById(dialogue.getDiscussionId())
+                .orElse(null);
+
+        // 获取所有消息
+        List<SocraticMessage> messages = messageRepository.findByDialogueIdOrderBySequenceNumberAsc(dialogueId);
+
+        // 构建对话过程摘要
+        StringBuilder dialogueSummary = new StringBuilder();
+        for (int i = 0; i < messages.size(); i += 2) {
+            if (i < messages.size()) {
+                SocraticMessage aiMsg = messages.get(i);
+                if (aiMsg.isFromAi()) {
+                    dialogueSummary.append("**AI追问：** ").append(aiMsg.getContent()).append("\n\n");
+                }
+            }
+            if (i + 1 < messages.size()) {
+                SocraticMessage userMsg = messages.get(i + 1);
+                if (userMsg.isFromUser()) {
+                    dialogueSummary.append("**我的思考：** ").append(userMsg.getContent()).append("\n\n");
+                }
+            }
+        }
+        dialogueSummary.append("\n---\n");
+        dialogueSummary.append("*来自苏格拉底式对话，共").append(dialogue.getCurrentRound()).append("轮思考*");
+
+        // 构建标题
+        String title = discussion != null
+                ? "思考：" + discussion.getTitle()
+                : "苏格拉底式对话洞察 (" + dialogue.getCreatedAt().toLocalDate() + ")";
+
+        // 保存到用户语料库（而非 Card）
+        UserCorpus corpus = userCorpusService.createFromSocraticDialogue(
+                userId,
+                dialogueId,
+                dialogue.getDiscussionId(),
+                title,
+                dialogue.getFinalInsight(),
+                dialogueSummary.toString()
+        );
+
+        log.info("洞察已保存到语料库，corpusId: {}, userId: {}", corpus.getId(), userId);
+        return corpus.getId();
     }
 
     private SocraticMessageResponse convertToMessageResponse(SocraticMessage message) {

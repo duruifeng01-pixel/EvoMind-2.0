@@ -143,4 +143,13 @@ public class SocraticDialogueController {
         SocraticDialogueService.DialogueStats stats = socraticDialogueService.getDialogueStats(userDetails.getId());
         return ApiResponse.success("获取成功", stats);
     }
+
+    @PostMapping("/dialogues/{id}/save-as-card")
+    @Operation(summary = "保存洞察为认知卡片", description = "将对话洞察保存到用户语料库")
+    public ApiResponse<Long> saveInsightAsCard(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Parameter(description = "对话ID", required = true) @PathVariable Long id) {
+        Long cardId = socraticDialogueService.saveInsightAsCard(userDetails.getId(), id);
+        return ApiResponse.success("已保存为认知卡片", cardId);
+    }
 }
