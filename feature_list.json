@@ -303,6 +303,10 @@
     "priority": "medium",
     "description": "成长数据可视化",
     "steps": [
+      "✅ Android: GrowthStatsApi 成长数据API",
+      "✅ Android: GrowthStatsViewModel 状态管理",
+      "✅ Android: GrowthStatsScreen UI展示",
+      "✅ Android: Screen.kt 添加GrowthStats路由",
       "学习时长统计",
       "认知卡片数量",
       "脑图规模展示",
